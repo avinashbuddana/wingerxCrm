@@ -20,7 +20,7 @@ Use Render Blueprint deployment and select this repository. Render will read `re
 - `wingerx-db` — PostgreSQL
 - `wingerx-redis` — Redis-compatible Key Value
 
-During Blueprint creation, Render asks for `SERVER_URL`. For the first creation, enter the final public HTTPS URL you want for the web service, for example `https://crm.yourdomain.com`. If you do not have a custom domain yet, you can initially use the Render service URL and update `SERVER_URL` after the service is created.
+`SERVER_URL` is wired automatically from Render's generated `RENDER_EXTERNAL_URL`, so the initial Blueprint does not require you to guess the service URL. If you later attach a custom domain, update `SERVER_URL` on the web and worker to that final HTTPS URL so generated links and OAuth callbacks use the custom domain.
 
 The Blueprint generates `APP_SECRET` and `ENCRYPTION_KEY`. Do not replace either value after production data has been created unless you are intentionally rotating keys using Twenty's supported rotation procedure.
 
