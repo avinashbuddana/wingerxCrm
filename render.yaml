@@ -18,7 +18,10 @@ services:
           type: keyvalue
           property: connectionString
       - key: SERVER_URL
-        sync: false
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: APP_SECRET
         generateValue: true
       - key: ENCRYPTION_KEY
@@ -56,7 +59,7 @@ services:
         fromService:
           name: wingerx-crm
           type: web
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
       - key: APP_SECRET
         fromService:
           name: wingerx-crm
