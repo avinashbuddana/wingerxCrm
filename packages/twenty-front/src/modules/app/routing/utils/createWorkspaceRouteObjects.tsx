@@ -42,8 +42,8 @@ const AiChatPage = lazy(() =>
 );
 
 const WingerXCommandCenterPage = lazy(() =>
-  import('~/pages/wingerx/WingerXCommandCenterPage').then((module) => ({
-    default: module.WingerXCommandCenterPage,
+  import('~/pages/wingerx/WingerXCommandCenterV2Page').then((module) => ({
+    default: module.WingerXCommandCenterV2Page,
   })),
 );
 
