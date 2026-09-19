@@ -41,6 +41,12 @@ const AiChatPage = lazy(() =>
   })),
 );
 
+const WingerXCommandCenterPage = lazy(() =>
+  import('~/pages/wingerx/WingerXCommandCenterV2Page').then((module) => ({
+    default: module.WingerXCommandCenterV2Page,
+  })),
+);
+
 const MobileHomePage = lazy(() =>
   import('~/pages/mobile-home/MobileHomePage').then((module) => ({
     default: module.MobileHomePage,
@@ -89,6 +95,17 @@ export const createWorkspaceRouteObjects = ({
     {
       path: AppPath.Index,
       element: <RecordIndexSkeletonLoader />,
+    },
+    {
+      path: AppPath.WingerXCommandCenter,
+      element: (
+        <LazyRoute>
+          <WingerXCommandCenterPage />
+        </LazyRoute>
+      ),
+      handle: {
+        workspaceSurfaces: ['main'],
+      },
     },
     {
       path: AppPath.RecordIndexPage,

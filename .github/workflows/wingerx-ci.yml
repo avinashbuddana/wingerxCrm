@@ -1,0 +1,45 @@
+name: WingerX validation
+
+on:
+  push:
+    branches:
+      - wingerx/sales-tech-command-center
+  pull_request:
+    paths:
+      - 'packages/twenty-front/src/modules/wingerx/**'
+      - 'packages/twenty-front/src/pages/wingerx/**'
+      - 'packages/twenty-front/src/modules/app/routing/utils/createWorkspaceRouteObjects.tsx'
+      - 'packages/twenty-front/src/modules/navigation/components/MainNavigationDrawerScrollableItems.tsx'
+      - 'packages/twenty-shared/src/types/AppPath.ts'
+      - 'Dockerfile.render'
+      - 'render.yaml'
+      - '.github/workflows/wingerx-ci.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Typecheck frontend
+        run: npx nx run twenty-front:typecheck
+
+      - name: Typecheck shared package
+        run: npx nx run twenty-shared:typecheck
+
+      - name: Build frontend
+        run: NODE_OPTIONS='--max-old-space-size=8192' npx nx build twenty-front
