@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState } from 'react';
-import { useStore } from 'jotai';
 import { CoreObjectNameSingular } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
@@ -9,6 +8,7 @@ import { useCreateManyRecords } from '@/object-record/hooks/useCreateManyRecords
 import { useCreateOneRecord } from '@/object-record/hooks/useCreateOneRecord';
 import { useObjectMorphJunctionConfigOrThrow } from '@/object-record/record-field/ui/hooks/useObjectMorphJunctionConfigOrThrow';
 import { findTargetFieldInfo } from '@/object-record/record-field/ui/utils/junction/findTargetFieldInfo';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { type WingerXRecord } from '@/wingerx/utils/wingerxRecordUtils';
 
 export type WingerXAutomationCandidate = {
@@ -75,7 +75,7 @@ export const useWingerXAutomation = ({
   const [isRunning, setIsRunning] = useState(false);
   const [lastRunAt, setLastRunAt] = useState<Date | null>(null);
   const createdMarkersRef = useRef(new Set<string>());
-  const store = useStore();
+  const currentWorkspaceMember = useAtomStateValue(currentWorkspaceMemberState);
 
   const { objectMetadataItems } = useObjectMetadataItems();
   const taskJunctionConfig = useObjectMorphJunctionConfigOrThrow({
@@ -122,9 +122,6 @@ export const useWingerXAutomation = ({
           }
 
           try {
-            const currentWorkspaceMember = store.get(
-              currentWorkspaceMemberState,
-            );
             const dueAt = new Date(
               Date.now() + rule.dueInHours * 60 * 60 * 1000,
             ).toISOString();
@@ -181,7 +178,7 @@ export const useWingerXAutomation = ({
       existingTaskTitles,
       isRunning,
       objectMetadataItems,
-      store,
+      currentWorkspaceMember?.id,
       taskJunctionConfig.junctionObjectMetadata.fields,
       taskJunctionConfig.sourceJoinColumnName,
     ],
