@@ -39,7 +39,8 @@ export const wingerXTextValue = (value: unknown): string => {
 
     if (typeof candidate === 'string') return candidate;
 
-    const firstName = typeof typed.firstName === 'string' ? typed.firstName : '';
+    const firstName =
+      typeof typed.firstName === 'string' ? typed.firstName : '';
     const lastName = typeof typed.lastName === 'string' ? typed.lastName : '';
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
@@ -116,9 +117,14 @@ export const getWingerXAmount = (record: WingerXRecord) =>
 
 export const isWingerXWonStage = (stage: string) => {
   const normalized = normalizeWingerXKey(stage);
-  return ['won', 'closedwon', 'customer', 'signed', 'success', 'converted'].some(
-    (token) => normalized.includes(token),
-  );
+  return [
+    'won',
+    'closedwon',
+    'customer',
+    'signed',
+    'success',
+    'converted',
+  ].some((token) => normalized.includes(token));
 };
 
 export const isWingerXLostStage = (stage: string) => {
@@ -190,5 +196,10 @@ export const getWingerXSource = (record: WingerXRecord) =>
 
 export const getWingerXPriority = (record: WingerXRecord) =>
   wingerXTextValue(
-    getWingerXRecordValue(record, ['priority', 'severity', 'urgency', 'impact']),
+    getWingerXRecordValue(record, [
+      'priority',
+      'severity',
+      'urgency',
+      'impact',
+    ]),
   ) || 'Unspecified';

@@ -57,7 +57,9 @@ export const useWingerXObjectRecords = ({
 
   const recordGqlFields = useMemo<RecordGqlOperationGqlRecordFields>(
     () =>
-      Object.fromEntries(readableFieldNames.map((fieldName) => [fieldName, true])),
+      Object.fromEntries(
+        readableFieldNames.map((fieldName) => [fieldName, true]),
+      ),
     [readableFieldNames],
   );
 

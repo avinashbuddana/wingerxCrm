@@ -65,15 +65,22 @@ export const computeWingerXSalesMetrics = (
     return !isWingerXWonStage(stage) && !isWingerXLostStage(stage);
   });
 
-  const wonValue = won.reduce((sum, record) => sum + getWingerXAmount(record), 0);
-  const openValue = open.reduce((sum, record) => sum + getWingerXAmount(record), 0);
+  const wonValue = won.reduce(
+    (sum, record) => sum + getWingerXAmount(record),
+    0,
+  );
+  const openValue = open.reduce(
+    (sum, record) => sum + getWingerXAmount(record),
+    0,
+  );
   const allValue = opportunities.reduce(
     (sum, record) => sum + getWingerXAmount(record),
     0,
   );
   const weightedPipeline = open.reduce(
     (sum, record) =>
-      sum + getWingerXAmount(record) * getStageProbability(getWingerXStage(record)),
+      sum +
+      getWingerXAmount(record) * getStageProbability(getWingerXStage(record)),
     0,
   );
 
@@ -109,7 +116,11 @@ export const computeWingerXSalesMetrics = (
     sourceMap.set(source, (sourceMap.get(source) ?? 0) + 1);
 
     const owner = getWingerXOwner(record);
-    const current = ownerMap.get(owner) ?? { opportunities: 0, won: 0, value: 0 };
+    const current = ownerMap.get(owner) ?? {
+      opportunities: 0,
+      won: 0,
+      value: 0,
+    };
     current.opportunities += 1;
     current.value += getWingerXAmount(record);
     if (isWingerXWonStage(stage)) current.won += 1;
@@ -163,16 +174,21 @@ export const computeWingerXTechMetrics = (
 
   const critical = records.filter((record) => {
     const priority = normalizeWingerXKey(getWingerXPriority(record));
-    return ['critical', 'p0', 'p1', 'urgent', 'highest', 'blocker'].some((token) =>
-      priority.includes(token),
+    return ['critical', 'p0', 'p1', 'urgent', 'highest', 'blocker'].some(
+      (token) => priority.includes(token),
     );
   });
 
   const open = records.filter((record) => {
     const status = normalizeWingerXKey(getWingerXStage(record));
-    return !['done', 'closed', 'resolved', 'complete', 'completed', 'cancelled'].some(
-      (token) => status.includes(token),
-    );
+    return ![
+      'done',
+      'closed',
+      'resolved',
+      'complete',
+      'completed',
+      'cancelled',
+    ].some((token) => status.includes(token));
   });
 
   const stale = open.filter((record) => {

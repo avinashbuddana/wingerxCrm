@@ -243,7 +243,10 @@ const StyledListRow = styled.div`
   border-bottom: 1px solid ${themeCssVariables.border.color.light};
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(130px, 2fr) minmax(80px, 1fr) minmax(70px, 1fr) minmax(70px, 1fr);
+  grid-template-columns: minmax(130px, 2fr) minmax(80px, 1fr) minmax(
+      70px,
+      1fr
+    ) minmax(70px, 1fr);
   min-height: 39px;
   padding: 0 3px;
 
@@ -405,7 +408,9 @@ const DistributionBars = ({
         <StyledBarRow key={label}>
           <StyledBarLabel title={label}>{label}</StyledBarLabel>
           <StyledTrack>
-            <StyledFill style={{ width: `${Math.max((value / max) * 100, 3)}%` }} />
+            <StyledFill
+              style={{ width: `${Math.max((value / max) * 100, 3)}%` }}
+            />
           </StyledTrack>
           <StyledBarValue>{value}</StyledBarValue>
         </StyledBarRow>
@@ -448,7 +453,10 @@ const useWingerXData = () => {
     limit: RECORD_LIMIT,
   });
   const companies = useWingerXObjectRecords({
-    candidate: { names: ['company', 'companies'], labels: ['company', 'companies'] },
+    candidate: {
+      names: ['company', 'companies'],
+      labels: ['company', 'companies'],
+    },
     fields: [
       'name',
       'employees',
@@ -503,7 +511,10 @@ const useWingerXData = () => {
     limit: RECORD_LIMIT,
   });
   const projects = useWingerXObjectRecords({
-    candidate: { names: ['project', 'projects'], labels: ['project', 'projects'] },
+    candidate: {
+      names: ['project', 'projects'],
+      labels: ['project', 'projects'],
+    },
     fields: [
       'name',
       'title',
@@ -518,8 +529,18 @@ const useWingerXData = () => {
   });
   const technicalRequests = useWingerXObjectRecords({
     candidate: {
-      names: ['technicalRequest', 'technicalRequests', 'techRequest', 'techRequests'],
-      labels: ['technical request', 'technical requests', 'tech request', 'tech requests'],
+      names: [
+        'technicalRequest',
+        'technicalRequests',
+        'techRequest',
+        'techRequests',
+      ],
+      labels: [
+        'technical request',
+        'technical requests',
+        'tech request',
+        'tech requests',
+      ],
     },
     fields: [
       'name',
@@ -550,7 +571,10 @@ const useWingerXData = () => {
     limit: RECORD_LIMIT,
   });
   const incidents = useWingerXObjectRecords({
-    candidate: { names: ['incident', 'incidents'], labels: ['incident', 'incidents'] },
+    candidate: {
+      names: ['incident', 'incidents'],
+      labels: ['incident', 'incidents'],
+    },
     fields: [
       'name',
       'title',
@@ -565,7 +589,10 @@ const useWingerXData = () => {
     limit: RECORD_LIMIT,
   });
   const deployments = useWingerXObjectRecords({
-    candidate: { names: ['deployment', 'deployments'], labels: ['deployment', 'deployments'] },
+    candidate: {
+      names: ['deployment', 'deployments'],
+      labels: ['deployment', 'deployments'],
+    },
     fields: [
       'name',
       'title',
@@ -607,7 +634,9 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
     [data.opportunities.records],
   );
 
-  const leadRecords = data.leads.isDetected ? data.leads.records : data.people.records;
+  const leadRecords = data.leads.isDetected
+    ? data.leads.records
+    : data.people.records;
   const leadCount = data.leads.isDetected
     ? (data.leads.totalCount ?? data.leads.records.length)
     : (data.people.totalCount ?? data.people.records.length);
@@ -652,7 +681,11 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
       <Metric
         label={data.leads.isDetected ? 'Total leads' : 'People / leads'}
         value={wingerXFormatCompactNumber(leadCount ?? 0)}
-        hint={data.leads.isDetected ? 'Lead object detected' : 'Using People as lead pool'}
+        hint={
+          data.leads.isDetected
+            ? 'Lead object detected'
+            : 'Using People as lead pool'
+        }
       />
       <Metric
         label="Open opportunities"
@@ -684,7 +717,11 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
         value={wingerXFormatCompactNumber(
           data.companies.totalCount ?? data.companies.records.length,
         )}
-        hint={data.companies.isDetected ? 'Accounts connected' : 'Company object unavailable'}
+        hint={
+          data.companies.isDetected
+            ? 'Accounts connected'
+            : 'Company object unavailable'
+        }
       />
       <Metric
         label="Overdue tasks"
@@ -717,7 +754,10 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledPanelTitle>Pipeline funnel</StyledPanelTitle>
           <StyledBadge>live</StyledBadge>
         </StyledPanelHeader>
-        <DistributionBars entries={metrics.stageCounts} emptyText="No stage data available yet." />
+        <DistributionBars
+          entries={metrics.stageCounts}
+          emptyText="No stage data available yet."
+        />
       </StyledPanel>
 
       <StyledPanel>
@@ -725,7 +765,10 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledPanelTitle>Lead sources</StyledPanelTitle>
           <StyledBadge>{leadRecords.length} analyzed</StyledBadge>
         </StyledPanelHeader>
-        <DistributionBars entries={leadSources} emptyText="No lead source field data available yet." />
+        <DistributionBars
+          entries={leadSources}
+          emptyText="No lead source field data available yet."
+        />
       </StyledPanel>
 
       <StyledPanel>
@@ -734,7 +777,10 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledBadge>{metrics.ownerPerformance.length} owners</StyledBadge>
         </StyledPanelHeader>
         {metrics.ownerPerformance.length === 0 ? (
-          <StyledEmpty>Add a readable owner/assignee field to opportunities to populate the leaderboard.</StyledEmpty>
+          <StyledEmpty>
+            Add a readable owner/assignee field to opportunities to populate the
+            leaderboard.
+          </StyledEmpty>
         ) : (
           <StyledList>
             <StyledListHeader>
@@ -774,7 +820,9 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
               <StyledListRow key={record.id}>
                 <StyledCell>{getWingerXRecordName(record)}</StyledCell>
                 <StyledCell>{getWingerXOwner(record)}</StyledCell>
-                <StyledCell>{wingerXFormatCurrency(getWingerXAmount(record))}</StyledCell>
+                <StyledCell>
+                  {wingerXFormatCurrency(getWingerXAmount(record))}
+                </StyledCell>
                 <StyledCell>
                   {wingerXDaysSince(getWingerXUpdatedAt(record)) ?? 0}d
                 </StyledCell>
@@ -790,7 +838,9 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledBadge>{largestOpen.length} shown</StyledBadge>
         </StyledPanelHeader>
         {largestOpen.length === 0 ? (
-          <StyledEmpty>No open opportunities with readable value fields yet.</StyledEmpty>
+          <StyledEmpty>
+            No open opportunities with readable value fields yet.
+          </StyledEmpty>
         ) : (
           <StyledList>
             <StyledListHeader>
@@ -804,7 +854,9 @@ const SalesView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
                 <StyledCell>{getWingerXRecordName(record)}</StyledCell>
                 <StyledCell>{getWingerXStage(record)}</StyledCell>
                 <StyledCell>{getWingerXOwner(record)}</StyledCell>
-                <StyledCell>{wingerXFormatCurrency(getWingerXAmount(record))}</StyledCell>
+                <StyledCell>
+                  {wingerXFormatCurrency(getWingerXAmount(record))}
+                </StyledCell>
               </StyledListRow>
             ))}
           </StyledList>
@@ -845,7 +897,10 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
       data.technicalRequests.records,
     ],
   );
-  const metrics = useMemo(() => computeWingerXTechMetrics(combined), [combined]);
+  const metrics = useMemo(
+    () => computeWingerXTechMetrics(combined),
+    [combined],
+  );
 
   const deploymentSuccess = useMemo(() => {
     if (data.deployments.records.length === 0) return 0;
@@ -853,8 +908,8 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
       const status = normalizeWingerXKey(
         wingerXTextValue(getWingerXRecordValue(record, ['result', 'status'])),
       );
-      return ['success', 'successful', 'passed', 'complete', 'completed'].some((token) =>
-        status.includes(token),
+      return ['success', 'successful', 'passed', 'complete', 'completed'].some(
+        (token) => status.includes(token),
       );
     }).length;
     return (successful / data.deployments.records.length) * 100;
@@ -862,7 +917,9 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
 
   const avgProjectProgress = useMemo(() => {
     const values = data.projects.records
-      .map((record) => wingerXNumericValue(getWingerXRecordValue(record, ['progress'])))
+      .map((record) =>
+        wingerXNumericValue(getWingerXRecordValue(record, ['progress'])),
+      )
       .filter((value) => value > 0);
     if (values.length === 0) return 0;
     const raw = values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -872,7 +929,10 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
   const techQueue = useMemo(
     () =>
       [...metrics.critical, ...metrics.stale]
-        .filter((record, index, records) => records.findIndex((item) => item.id === record.id) === index)
+        .filter(
+          (record, index, records) =>
+            records.findIndex((item) => item.id === record.id) === index,
+        )
         .slice(0, 10),
     [metrics.critical, metrics.stale],
   );
@@ -881,19 +941,26 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
     <StyledGrid>
       <Metric
         label="Projects"
-        value={wingerXFormatCompactNumber(data.projects.totalCount ?? data.projects.records.length)}
+        value={wingerXFormatCompactNumber(
+          data.projects.totalCount ?? data.projects.records.length,
+        )}
         hint={`${avgProjectProgress.toFixed(0)}% average progress`}
       />
       <Metric
         label="Technical requests"
         value={wingerXFormatCompactNumber(
-          data.technicalRequests.totalCount ?? data.technicalRequests.records.length,
+          data.technicalRequests.totalCount ??
+            data.technicalRequests.records.length,
         )}
-        hint={data.technicalRequests.isDetected ? 'Connected' : 'Object not found'}
+        hint={
+          data.technicalRequests.isDetected ? 'Connected' : 'Object not found'
+        }
       />
       <Metric
         label="Bugs"
-        value={wingerXFormatCompactNumber(data.bugs.totalCount ?? data.bugs.records.length)}
+        value={wingerXFormatCompactNumber(
+          data.bugs.totalCount ?? data.bugs.records.length,
+        )}
         hint={data.bugs.isDetected ? 'Connected' : 'Object not found'}
       />
       <Metric
@@ -928,20 +995,25 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
       <Metric
         label="Feature requests"
         value={wingerXFormatCompactNumber(
-          data.featureRequests.totalCount ?? data.featureRequests.records.length,
+          data.featureRequests.totalCount ??
+            data.featureRequests.records.length,
         )}
-        hint={data.featureRequests.isDetected ? 'Connected' : 'Object not found'}
+        hint={
+          data.featureRequests.isDetected ? 'Connected' : 'Object not found'
+        }
       />
       <Metric
         label="Tech objects"
-        value={`${[
-          data.projects,
-          data.technicalRequests,
-          data.bugs,
-          data.incidents,
-          data.deployments,
-          data.featureRequests,
-        ].filter((item) => item.isDetected).length}/6`}
+        value={`${
+          [
+            data.projects,
+            data.technicalRequests,
+            data.bugs,
+            data.incidents,
+            data.deployments,
+            data.featureRequests,
+          ].filter((item) => item.isDetected).length
+        }/6`}
         hint="Auto-detected data model coverage"
       />
       <Metric
@@ -960,7 +1032,10 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledPanelTitle>Status distribution</StyledPanelTitle>
           <StyledBadge>live</StyledBadge>
         </StyledPanelHeader>
-        <DistributionBars entries={metrics.statusCounts} emptyText="No technical status data yet." />
+        <DistributionBars
+          entries={metrics.statusCounts}
+          emptyText="No technical status data yet."
+        />
       </StyledPanel>
 
       <StyledPanel>
@@ -968,7 +1043,10 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledPanelTitle>Priority distribution</StyledPanelTitle>
           <StyledBadge>{metrics.total} items</StyledBadge>
         </StyledPanelHeader>
-        <DistributionBars entries={metrics.priorityCounts} emptyText="No priority/severity data yet." />
+        <DistributionBars
+          entries={metrics.priorityCounts}
+          emptyText="No priority/severity data yet."
+        />
       </StyledPanel>
 
       <StyledWidePanel>
@@ -977,7 +1055,9 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
           <StyledBadge>{techQueue.length} shown</StyledBadge>
         </StyledPanelHeader>
         {techQueue.length === 0 ? (
-          <StyledEmpty>No critical or stale technical work detected.</StyledEmpty>
+          <StyledEmpty>
+            No critical or stale technical work detected.
+          </StyledEmpty>
         ) : (
           <StyledList>
             <StyledListHeader>
@@ -1020,7 +1100,11 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
   );
 };
 
-const AutomationView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
+const AutomationView = ({
+  data,
+}: {
+  data: ReturnType<typeof useWingerXData>;
+}) => {
   const sales = useMemo(
     () => computeWingerXSalesMetrics(data.opportunities.records),
     [data.opportunities.records],
@@ -1039,27 +1123,38 @@ const AutomationView = ({ data }: { data: ReturnType<typeof useWingerXData> }) =
       data.technicalRequests.records,
     ],
   );
-  const tech = useMemo(() => computeWingerXTechMetrics(techRecords), [techRecords]);
+  const tech = useMemo(
+    () => computeWingerXTechMetrics(techRecords),
+    [techRecords],
+  );
 
   const overdueTasks = useMemo(
     () =>
       data.tasks.records.filter((record) => {
-        const due = wingerXDateValue(getWingerXRecordValue(record, ['dueAt', 'dueDate']));
+        const due = wingerXDateValue(
+          getWingerXRecordValue(record, ['dueAt', 'dueDate']),
+        );
         const status = normalizeWingerXKey(getWingerXStage(record));
         return (
           due !== null &&
           due.valueOf() < Date.now() &&
-          !['done', 'closed', 'complete', 'completed'].some((token) => status.includes(token))
+          !['done', 'closed', 'complete', 'completed'].some((token) =>
+            status.includes(token),
+          )
         );
       }),
     [data.tasks.records],
   );
 
   const newLeads24h = useMemo(() => {
-    const records = data.leads.isDetected ? data.leads.records : data.people.records;
+    const records = data.leads.isDetected
+      ? data.leads.records
+      : data.people.records;
     return records.filter((record) => {
       const createdAt = getWingerXCreatedAt(record);
-      return createdAt !== null && Date.now() - createdAt.valueOf() <= 86_400_000;
+      return (
+        createdAt !== null && Date.now() - createdAt.valueOf() <= 86_400_000
+      );
     }).length;
   }, [data.leads.isDetected, data.leads.records, data.people.records]);
 
@@ -1108,7 +1203,9 @@ const AutomationView = ({ data }: { data: ReturnType<typeof useWingerXData> }) =
             <StyledRuleText>{rule.text}</StyledRuleText>
           </StyledRule>
           <StyledEmpty>
-            This rule is evaluated continuously from the records loaded by the command center. Native Twenty workflows and the Render automation runner can use the same thresholds for actions and notifications.
+            This rule is evaluated continuously from the records loaded by the
+            command center. Native Twenty workflows and the Render automation
+            runner can use the same thresholds for actions and notifications.
           </StyledEmpty>
         </StyledPanel>
       ))}
@@ -1119,16 +1216,40 @@ const AutomationView = ({ data }: { data: ReturnType<typeof useWingerXData> }) =
           <StyledBadge>production foundation</StyledBadge>
         </StyledPanelHeader>
         <StyledChips>
-          <StyledChip><StyledDot />Live schema detection</StyledChip>
-          <StyledChip><StyledDot />Stale-deal rules</StyledChip>
-          <StyledChip><StyledDot />High-value deal watch</StyledChip>
-          <StyledChip><StyledDot />Overdue task rules</StyledChip>
-          <StyledChip><StyledDot />Critical tech escalation</StyledChip>
-          <StyledChip><StyledDot />AI copilot handoff</StyledChip>
-          <StyledChip><StyledDot />Render server + worker architecture</StyledChip>
+          <StyledChip>
+            <StyledDot />
+            Live schema detection
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            Stale-deal rules
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            High-value deal watch
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            Overdue task rules
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            Critical tech escalation
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            AI copilot handoff
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            Render server + worker architecture
+          </StyledChip>
         </StyledChips>
         <StyledRuleText>
-          Server-side actions that mutate CRM records remain permission-controlled by Twenty. The deployment package includes the CRM worker and uses Twenty's native workflow/AI infrastructure; no production secret is embedded in this repository.
+          Server-side actions that mutate CRM records remain
+          permission-controlled by Twenty. The deployment package includes the
+          CRM worker and uses Twenty's native workflow/AI infrastructure; no
+          production secret is embedded in this repository.
         </StyledRuleText>
       </StyledWidePanel>
     </StyledGrid>
@@ -1154,14 +1275,19 @@ export const WingerXCommandCenterV2Page = () => {
         <StyledTitleBlock>
           <StyledTitle>WingerX Command Center</StyledTitle>
           <StyledSubtitle>
-            Live sales, pipeline, team, technical and automation intelligence built directly on Twenty's metadata-aware record layer. Custom objects are detected automatically, so the dashboard grows with your workspace without hard-coded record IDs.
+            Live sales, pipeline, team, technical and automation intelligence
+            built directly on Twenty's metadata-aware record layer. Custom
+            objects are detected automatically, so the dashboard grows with your
+            workspace without hard-coded record IDs.
           </StyledSubtitle>
         </StyledTitleBlock>
         <StyledHeaderActions>
           <StyledButton
             type="button"
             onClick={() =>
-              askAi('Analyze my current sales pipeline. Focus on deals likely to close, stale deals, high-value risk, overdue follow-ups, and the next actions for each sales owner.')
+              askAi(
+                'Analyze my current sales pipeline. Focus on deals likely to close, stale deals, high-value risk, overdue follow-ups, and the next actions for each sales owner.',
+              )
             }
           >
             Ask AI: Sales
@@ -1169,22 +1295,35 @@ export const WingerXCommandCenterV2Page = () => {
           <StyledButton
             type="button"
             onClick={() =>
-              askAi('Analyze current technical operations in this workspace. Focus on critical bugs/incidents, stale work, risky projects, deployment health, customer-impacting blockers, and next actions.')
+              askAi(
+                'Analyze current technical operations in this workspace. Focus on critical bugs/incidents, stale work, risky projects, deployment health, customer-impacting blockers, and next actions.',
+              )
             }
           >
             Ask AI: Tech
           </StyledButton>
-          <StyledPrimaryButton type="button" onClick={() => askAi(executivePrompt)}>
+          <StyledPrimaryButton
+            type="button"
+            onClick={() => askAi(executivePrompt)}
+          >
             Executive AI Brief
           </StyledPrimaryButton>
         </StyledHeaderActions>
       </StyledHeader>
 
       <StyledTabs aria-label="WingerX dashboard section">
-        <StyledTab data-active={tab === 'sales'} type="button" onClick={() => setTab('sales')}>
+        <StyledTab
+          data-active={tab === 'sales'}
+          type="button"
+          onClick={() => setTab('sales')}
+        >
           Sales
         </StyledTab>
-        <StyledTab data-active={tab === 'tech'} type="button" onClick={() => setTab('tech')}>
+        <StyledTab
+          data-active={tab === 'tech'}
+          type="button"
+          onClick={() => setTab('tech')}
+        >
           Tech
         </StyledTab>
         <StyledTab
