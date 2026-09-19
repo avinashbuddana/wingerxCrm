@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { agentChatPrepromptState } from '@/ai/states/agentChatPrepromptState';
+import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
+import {
+  type WingerXAutomationCandidate,
+  type WingerXAutomationRule,
+  useWingerXAutomation,
+} from '@/wingerx/hooks/useWingerXAutomation';
 import { useWingerXObjectRecords } from '@/wingerx/hooks/useWingerXObjectRecords';
 import {
   computeWingerXSalesMetrics,
@@ -372,6 +378,20 @@ const StyledRuleText = styled.div`
   color: ${themeCssVariables.font.color.secondary};
   font-size: 10px;
   line-height: 1.45;
+`;
+
+const StyledRuleActions = styled.div`
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${themeCssVariables.spacing[2]};
+  justify-content: space-between;
+  margin-top: auto;
+`;
+
+const StyledRunSummary = styled.div`
+  color: ${themeCssVariables.font.color.tertiary};
+  font-size: ${themeCssVariables.font.size.sm};
 `;
 
 const Metric = ({
@@ -1105,23 +1125,29 @@ const AutomationView = ({
 }: {
   data: ReturnType<typeof useWingerXData>;
 }) => {
+  const { enqueueErrorSnackBar, enqueueSuccessSnackBar } = useSnackBar();
   const sales = useMemo(
     () => computeWingerXSalesMetrics(data.opportunities.records),
     [data.opportunities.records],
   );
+  const techCandidates = useMemo<WingerXAutomationCandidate[]>(() => {
+    const toCandidates = (result: DataResult) =>
+      result.records.map((record) => ({
+        objectNameSingular:
+          result.matchedObjectMetadataItem?.nameSingular ?? '',
+        record,
+      }));
+
+    return [
+      ...toCandidates(data.technicalRequests),
+      ...toCandidates(data.bugs),
+      ...toCandidates(data.incidents),
+      ...toCandidates(data.featureRequests),
+    ].filter((candidate) => candidate.objectNameSingular.length > 0);
+  }, [data.bugs, data.featureRequests, data.incidents, data.technicalRequests]);
   const techRecords = useMemo(
-    () => [
-      ...data.technicalRequests.records,
-      ...data.bugs.records,
-      ...data.incidents.records,
-      ...data.featureRequests.records,
-    ],
-    [
-      data.bugs.records,
-      data.featureRequests.records,
-      data.incidents.records,
-      data.technicalRequests.records,
-    ],
+    () => techCandidates.map((candidate) => candidate.record),
+    [techCandidates],
   );
   const tech = useMemo(
     () => computeWingerXTechMetrics(techRecords),
@@ -1146,110 +1172,216 @@ const AutomationView = ({
     [data.tasks.records],
   );
 
-  const newLeads24h = useMemo(() => {
+  const newLeadCandidates = useMemo<WingerXAutomationCandidate[]>(() => {
     const records = data.leads.isDetected
       ? data.leads.records
       : data.people.records;
-    return records.filter((record) => {
-      const createdAt = getWingerXCreatedAt(record);
-      return (
-        createdAt !== null && Date.now() - createdAt.valueOf() <= 86_400_000
-      );
-    }).length;
-  }, [data.leads.isDetected, data.leads.records, data.people.records]);
+    const objectNameSingular = data.leads.isDetected
+      ? data.leads.matchedObjectMetadataItem?.nameSingular
+      : data.people.matchedObjectMetadataItem?.nameSingular;
 
-  const rules = [
+    if (!objectNameSingular) return [];
+
+    return records
+      .filter((record) => {
+        const createdAt = getWingerXCreatedAt(record);
+        return (
+          createdAt !== null && Date.now() - createdAt.valueOf() <= 86_400_000
+        );
+      })
+      .map((record) => ({ objectNameSingular, record }));
+  }, [data.leads, data.people]);
+
+  const opportunityObjectName =
+    data.opportunities.matchedObjectMetadataItem?.nameSingular ?? '';
+  const staleTechIds = new Set(tech.stale.map((record) => record.id));
+  const criticalTechIds = new Set(tech.critical.map((record) => record.id));
+
+  const rules: WingerXAutomationRule[] = [
     {
+      key: 'stale-deal',
       title: 'Stale opportunity escalation',
-      count: sales.staleDeals.length,
-      text: `Flags open opportunities with no update for ${STALE_DEAL_DAYS}+ days for manager follow-up.`,
+      taskPrefix: 'Follow up on stale opportunity',
+      description: `This opportunity has had no update for ${STALE_DEAL_DAYS}+ days. Review the deal, contact the customer, and record the next step.`,
+      candidates: sales.staleDeals.map((record) => ({
+        objectNameSingular: opportunityObjectName,
+        record,
+      })),
+      dueInHours: 24,
     },
     {
+      key: 'high-value',
       title: 'High-value deal watch',
-      count: sales.highValueDeals.length,
-      text: 'Surfaces open opportunities above 1.5× the average won deal size.',
+      taskPrefix: 'Review high-value opportunity',
+      description:
+        'This open opportunity is above 1.5× the average won deal size. Confirm the close plan, risks, owner, and next customer action.',
+      candidates: sales.highValueDeals.map((record) => ({
+        objectNameSingular: opportunityObjectName,
+        record,
+      })),
+      dueInHours: 12,
     },
     {
-      title: 'Overdue follow-up watch',
-      count: overdueTasks.length,
-      text: 'Detects open CRM tasks whose due date has passed.',
-    },
-    {
+      key: 'critical-tech',
       title: 'Critical technical escalation',
-      count: tech.critical.length,
-      text: 'Flags P0/P1/critical/urgent/blocker technical records immediately.',
+      taskPrefix: 'Resolve critical technical item',
+      description:
+        'This P0/P1/critical/urgent/blocker item requires immediate triage, ownership, and a documented resolution plan.',
+      candidates: techCandidates.filter((candidate) =>
+        criticalTechIds.has(candidate.record.id),
+      ),
+      dueInHours: 4,
     },
     {
+      key: 'stale-tech',
       title: 'Stale engineering work',
-      count: tech.stale.length,
-      text: `Flags unresolved technical records unchanged for ${STALE_TECH_DAYS}+ days.`,
+      taskPrefix: 'Update stale technical item',
+      description: `This unresolved technical item has not been updated for ${STALE_TECH_DAYS}+ days. Confirm status, owner, blocker, and next action.`,
+      candidates: techCandidates.filter((candidate) =>
+        staleTechIds.has(candidate.record.id),
+      ),
+      dueInHours: 24,
     },
     {
+      key: 'new-lead',
       title: 'New lead intake',
-      count: newLeads24h,
-      text: 'Tracks leads created during the last 24 hours for rapid response.',
+      taskPrefix: 'Contact new lead',
+      description:
+        'This lead was created in the last 24 hours. Qualify it and record the first response and next step.',
+      candidates: newLeadCandidates,
+      dueInHours: 4,
     },
-  ];
+  ].map((rule) => ({
+    ...rule,
+    candidates: rule.candidates.filter(
+      (candidate) => candidate.objectNameSingular.length > 0,
+    ),
+  }));
+
+  const { isRunning, lastRunAt, runRule, runRules } = useWingerXAutomation({
+    taskRecords: data.tasks.records,
+  });
+
+  const showRunResult = ({
+    created,
+    skipped,
+    failed,
+  }: {
+    created: number;
+    skipped: number;
+    failed: number;
+  }) => {
+    if (failed > 0) {
+      enqueueErrorSnackBar({
+        message: `Automation finished: ${created} task(s) created, ${skipped} already existed, ${failed} failed.`,
+      });
+      return;
+    }
+
+    enqueueSuccessSnackBar({
+      message: `Automation finished: ${created} task(s) created, ${skipped} already existed.`,
+    });
+  };
 
   return (
     <StyledGrid>
+      <StyledWidePanel>
+        <StyledPanelHeader>
+          <div>
+            <StyledPanelTitle>Automation control center</StyledPanelTitle>
+            <StyledRuleText>
+              Creates real, assigned Twenty tasks and links them to the source
+              CRM record. Re-running is safe: existing WingerX tasks are
+              skipped.
+            </StyledRuleText>
+          </div>
+          <StyledPrimaryButton
+            disabled={isRunning}
+            type="button"
+            onClick={async () => showRunResult(await runRules(rules))}
+          >
+            {isRunning ? 'Running…' : 'Run all automations'}
+          </StyledPrimaryButton>
+        </StyledPanelHeader>
+        <StyledChips>
+          <StyledChip>
+            <StyledDot />
+            {rules.reduce((sum, rule) => sum + rule.candidates.length, 0)}{' '}
+            actionable records
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            {overdueTasks.length} overdue tasks already need attention
+          </StyledChip>
+          <StyledChip>
+            <StyledDot />
+            {lastRunAt
+              ? `Last run ${lastRunAt.toLocaleTimeString()}`
+              : 'Not run in this session'}
+          </StyledChip>
+        </StyledChips>
+      </StyledWidePanel>
+
       {rules.map((rule) => (
         <StyledPanel key={rule.title}>
           <StyledRule>
             <StyledRuleTop>
               <StyledRuleTitle>{rule.title}</StyledRuleTitle>
-              <StyledBadge>{rule.count} active</StyledBadge>
+              <StyledBadge>{rule.candidates.length} active</StyledBadge>
             </StyledRuleTop>
-            <StyledRuleText>{rule.text}</StyledRuleText>
+            <StyledRuleText>{rule.description}</StyledRuleText>
           </StyledRule>
-          <StyledEmpty>
-            This rule is evaluated continuously from the records loaded by the
-            command center. Native Twenty workflows and the Render automation
-            runner can use the same thresholds for actions and notifications.
-          </StyledEmpty>
+          <StyledRuleActions>
+            <StyledRunSummary>
+              Creates a linked task due in {rule.dueInHours} hours
+            </StyledRunSummary>
+            <StyledButton
+              disabled={isRunning || rule.candidates.length === 0}
+              type="button"
+              onClick={async () => showRunResult(await runRule(rule))}
+            >
+              Run now
+            </StyledButton>
+          </StyledRuleActions>
         </StyledPanel>
       ))}
 
       <StyledWidePanel>
         <StyledPanelHeader>
-          <StyledPanelTitle>Automation deployment readiness</StyledPanelTitle>
-          <StyledBadge>production foundation</StyledBadge>
+          <StyledPanelTitle>Automation behavior</StyledPanelTitle>
+          <StyledBadge>live CRM mutations</StyledBadge>
         </StyledPanelHeader>
         <StyledChips>
           <StyledChip>
             <StyledDot />
-            Live schema detection
+            Permission-controlled task creation
           </StyledChip>
           <StyledChip>
             <StyledDot />
-            Stale-deal rules
+            Source-record linking
           </StyledChip>
           <StyledChip>
             <StyledDot />
-            High-value deal watch
+            Owner assignment with current-user fallback
           </StyledChip>
           <StyledChip>
             <StyledDot />
-            Overdue task rules
+            Duplicate-safe execution
           </StyledChip>
           <StyledChip>
             <StyledDot />
-            Critical tech escalation
+            Due-date SLA by rule
           </StyledChip>
           <StyledChip>
             <StyledDot />
-            AI copilot handoff
-          </StyledChip>
-          <StyledChip>
-            <StyledDot />
-            Render server + worker architecture
+            Immediate success/error feedback
           </StyledChip>
         </StyledChips>
         <StyledRuleText>
-          Server-side actions that mutate CRM records remain
-          permission-controlled by Twenty. The deployment package includes the
-          CRM worker and uses Twenty's native workflow/AI infrastructure; no
-          production secret is embedded in this repository.
+          Automations use the signed-in user's Twenty permissions. They create
+          tasks directly in the CRM, assign the detected record owner when
+          available, fall back to the current user, and link each task to its
+          originating opportunity, lead, bug, incident, request, or feature.
         </StyledRuleText>
       </StyledWidePanel>
     </StyledGrid>

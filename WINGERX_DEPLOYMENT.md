@@ -52,7 +52,7 @@ If a technical object does not yet exist in your Twenty workspace, its dashboard
 
 ## Automation behavior
 
-The command center evaluates these rules continuously whenever live CRM records load:
+The command center evaluates these rules from live CRM records and can execute them individually or together from the Automation tab:
 
 1. Open opportunity unchanged for 14+ days → stale-deal escalation signal.
 2. Open deal greater than 1.5× the average won-deal size → high-value watch.
@@ -61,7 +61,7 @@ The command center evaluates these rules continuously whenever live CRM records 
 5. Open technical record unchanged for 7+ days → stale-engineering signal.
 6. Lead/person created in the past 24 hours → new-lead response signal.
 
-Twenty's native workflow engine and queue worker are deployed alongside this dashboard. Use native workflows for actions that send email, call HTTP endpoints, assign records or modify records because Twenty enforces workspace permissions and logs workflow execution. The visual WingerX automation center intentionally does not silently mutate CRM data from a dashboard render.
+Running an automation creates real Twenty tasks, assigns the source record's owner when available (otherwise the signed-in user), applies a rule-specific due date, and links the task to its originating opportunity, lead, bug, incident, technical request, or feature request. Task titles contain a stable WingerX marker, so re-running a rule skips work already created instead of creating duplicates. Every mutation uses the signed-in user's Twenty permissions and reports created, skipped, and failed counts in the interface.
 
 ## Security
 
