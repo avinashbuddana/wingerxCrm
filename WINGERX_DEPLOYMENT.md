@@ -28,6 +28,8 @@ The Blueprint generates `APP_SECRET` and `ENCRYPTION_KEY`. Do not replace either
 
 `NODE_PORT=10000` is already configured. Database and Redis connection strings are wired automatically by the Blueprint. Database migrations and Twenty cron registration run only on the web service; the worker has both disabled to prevent duplicate registration.
 
+The Blueprint places every service in Render's Singapore region for lower latency from India. It uses 2 GB compute for both the web service and worker, 1 GB PostgreSQL, and 256 MB Key Value so the CRM is not launched on undersized defaults. PostgreSQL and Key Value have empty public IP allowlists and are reachable only over Render's private network.
+
 The default Blueprint uses `STORAGE_TYPE=local`. This is acceptable for evaluation and CRM records because records live in PostgreSQL, but local file storage on Render is not appropriate for durable production attachments. Before storing important uploaded files, switch Twenty to S3-compatible storage and configure the `STORAGE_S3_*` variables supported by Twenty. Do not commit storage credentials.
 
 ## AI

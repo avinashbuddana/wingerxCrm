@@ -1,9 +1,9 @@
 import { styled } from '@linaria/react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AppPath } from 'twenty-shared/types';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
-const StyledLinkButton = styled.button`
+const StyledLink = styled(Link)`
   align-items: center;
   background: transparent;
   border: 0;
@@ -17,6 +17,7 @@ const StyledLinkButton = styled.button`
   min-height: 28px;
   padding: 0 ${themeCssVariables.spacing[2]};
   text-align: left;
+  text-decoration: none;
   width: 100%;
 
   &:hover {
@@ -44,17 +45,15 @@ const StyledMark = styled.span`
 `;
 
 export const WingerXNavigationShortcut = () => {
-  const navigate = useNavigate();
   const location = useLocation();
 
   return (
-    <StyledLinkButton
+    <StyledLink
       data-active={location.pathname === AppPath.WingerXCommandCenter}
-      onClick={() => navigate(AppPath.WingerXCommandCenter)}
-      type="button"
+      to={AppPath.WingerXCommandCenter}
     >
       <StyledMark>WX</StyledMark>
       WingerX Command Center
-    </StyledLinkButton>
+    </StyledLink>
   );
 };

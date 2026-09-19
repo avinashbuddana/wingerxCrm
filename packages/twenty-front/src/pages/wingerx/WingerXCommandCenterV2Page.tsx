@@ -1,6 +1,7 @@
 import { styled } from '@linaria/react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { agentChatPrepromptState } from '@/ai/states/agentChatPrepromptState';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
@@ -26,7 +27,6 @@ import {
   wingerXFormatCurrency,
   wingerXNumericValue,
   wingerXTextValue,
-  type WingerXRecord,
 } from '@/wingerx/utils/wingerxRecordUtils';
 
 const RECORD_LIMIT = 500;
@@ -70,7 +70,7 @@ const StyledTitle = styled.h1`
 `;
 
 const StyledSubtitle = styled.p`
-  color: rgba(128, 128, 128, 0.96);
+  color: ${themeCssVariables.font.color.secondary};
   font-size: 13px;
   line-height: 1.5;
   margin: 0;
@@ -85,10 +85,10 @@ const StyledHeaderActions = styled.div`
 `;
 
 const StyledButton = styled.button`
-  background: rgba(128, 128, 128, 0.1);
-  border: 1px solid rgba(128, 128, 128, 0.18);
-  border-radius: 9px;
-  color: inherit;
+  background: ${themeCssVariables.background.transparent.light};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.md};
+  color: ${themeCssVariables.font.color.primary};
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
@@ -96,25 +96,24 @@ const StyledButton = styled.button`
   padding: 9px 12px;
 
   &:hover {
-    background: rgba(128, 128, 128, 0.16);
+    background: ${themeCssVariables.background.transparent.medium};
   }
 `;
 
 const StyledPrimaryButton = styled(StyledButton)`
-  background: currentColor;
-  color: Canvas;
-  opacity: 0.9;
+  background: ${themeCssVariables.background.invertedPrimary};
+  color: ${themeCssVariables.font.color.inverted};
 
   &:hover {
-    opacity: 1;
+    background: ${themeCssVariables.background.invertedSecondary};
   }
 `;
 
 const StyledTabs = styled.div`
   align-self: flex-start;
-  background: rgba(128, 128, 128, 0.07);
-  border: 1px solid rgba(128, 128, 128, 0.14);
-  border-radius: 10px;
+  background: ${themeCssVariables.background.secondary};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.md};
   display: flex;
   gap: 4px;
   padding: 4px;
@@ -123,8 +122,8 @@ const StyledTabs = styled.div`
 const StyledTab = styled.button`
   background: transparent;
   border: 0;
-  border-radius: 7px;
-  color: inherit;
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.primary};
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
@@ -132,7 +131,7 @@ const StyledTab = styled.button`
   padding: 8px 13px;
 
   &[data-active='true'] {
-    background: rgba(128, 128, 128, 0.18);
+    background: ${themeCssVariables.background.transparent.medium};
   }
 `;
 
@@ -151,9 +150,9 @@ const StyledGrid = styled.div`
 `;
 
 const StyledMetric = styled.div`
-  background: rgba(128, 128, 128, 0.045);
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  border-radius: 12px;
+  background: ${themeCssVariables.background.secondary};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.lg};
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -163,7 +162,7 @@ const StyledMetric = styled.div`
 `;
 
 const StyledMetricLabel = styled.div`
-  color: rgba(128, 128, 128, 0.96);
+  color: ${themeCssVariables.font.color.secondary};
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.035em;
@@ -177,15 +176,15 @@ const StyledMetricValue = styled.div`
 `;
 
 const StyledMetricHint = styled.div`
-  color: rgba(128, 128, 128, 0.9);
+  color: ${themeCssVariables.font.color.tertiary};
   font-size: 10px;
   line-height: 1.35;
 `;
 
 const StyledPanel = styled.section`
-  background: rgba(128, 128, 128, 0.035);
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  border-radius: 12px;
+  background: ${themeCssVariables.background.secondary};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.lg};
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -225,10 +224,10 @@ const StyledPanelTitle = styled.h2`
 `;
 
 const StyledBadge = styled.span`
-  background: rgba(128, 128, 128, 0.08);
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  border-radius: 999px;
-  color: rgba(128, 128, 128, 0.96);
+  background: ${themeCssVariables.background.transparent.light};
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.pill};
+  color: ${themeCssVariables.font.color.secondary};
   font-size: 10px;
   padding: 4px 7px;
   white-space: nowrap;
@@ -241,7 +240,7 @@ const StyledList = styled.div`
 
 const StyledListRow = styled.div`
   align-items: center;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.11);
+  border-bottom: 1px solid ${themeCssVariables.border.color.light};
   display: grid;
   gap: 10px;
   grid-template-columns: minmax(130px, 2fr) minmax(80px, 1fr) minmax(70px, 1fr) minmax(70px, 1fr);
@@ -254,7 +253,7 @@ const StyledListRow = styled.div`
 `;
 
 const StyledListHeader = styled(StyledListRow)`
-  color: rgba(128, 128, 128, 0.95);
+  color: ${themeCssVariables.font.color.secondary};
   font-size: 9px;
   font-weight: 720;
   min-height: 30px;
@@ -289,15 +288,15 @@ const StyledBarLabel = styled.div`
 `;
 
 const StyledTrack = styled.div`
-  background: rgba(128, 128, 128, 0.1);
-  border-radius: 999px;
+  background: ${themeCssVariables.background.transparent.medium};
+  border-radius: ${themeCssVariables.border.radius.pill};
   height: 8px;
   overflow: hidden;
 `;
 
 const StyledFill = styled.div`
-  background: currentColor;
-  border-radius: 999px;
+  background: ${themeCssVariables.color.blue};
+  border-radius: ${themeCssVariables.border.radius.pill};
   height: 100%;
   opacity: 0.5;
 `;
@@ -310,7 +309,7 @@ const StyledBarValue = styled.div`
 
 const StyledEmpty = styled.div`
   align-items: center;
-  color: rgba(128, 128, 128, 0.92);
+  color: ${themeCssVariables.font.color.tertiary};
   display: flex;
   flex: 1;
   font-size: 11px;
@@ -329,8 +328,8 @@ const StyledChips = styled.div`
 
 const StyledChip = styled.div`
   align-items: center;
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  border-radius: 999px;
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.pill};
   display: inline-flex;
   font-size: 10px;
   gap: 6px;
@@ -346,8 +345,8 @@ const StyledDot = styled.span`
 `;
 
 const StyledRule = styled.div`
-  border: 1px solid rgba(128, 128, 128, 0.14);
-  border-radius: 10px;
+  border: 1px solid ${themeCssVariables.border.color.light};
+  border-radius: ${themeCssVariables.border.radius.md};
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -367,7 +366,7 @@ const StyledRuleTitle = styled.div`
 `;
 
 const StyledRuleText = styled.div`
-  color: rgba(128, 128, 128, 0.94);
+  color: ${themeCssVariables.font.color.secondary};
   font-size: 10px;
   line-height: 1.45;
 `;
