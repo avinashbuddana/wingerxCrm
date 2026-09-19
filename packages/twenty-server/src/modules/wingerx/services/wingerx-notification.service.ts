@@ -1,10 +1,11 @@
 import {
   BadGatewayException,
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   Logger,
   ServiceUnavailableException,
-  TooManyRequestsException,
 } from '@nestjs/common';
 
 import { EmailDriver } from 'src/engine/core-modules/email/enums/email-driver.enum';
@@ -218,8 +219,9 @@ export class WingerXNotificationService {
     );
 
     if (recent.length >= RATE_LIMIT_MAX) {
-      throw new TooManyRequestsException(
+      throw new HttpException(
         `WingerX ${channel} limit reached. Try again in one minute.`,
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
@@ -303,11 +305,11 @@ export class WingerXNotificationService {
 
   private toSafeHtml(message: string) {
     return message
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-      .replaceAll('\n', '<br />');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+      .replace(/\n/g, '<br />');
   }
 }
