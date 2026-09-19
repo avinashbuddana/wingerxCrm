@@ -7,6 +7,7 @@ This fork contains the WingerX Sales + Tech Command Center on top of Twenty CRM.
 - Sales command center with pipeline, won/lost, weighted forecast, average deal size, stage funnel, lead source distribution, owner performance, stale-deal detection, high-value deal detection, overdue follow-up detection, and largest-open-deal views.
 - Tech command center with Projects, Technical Requests, Bugs, Incidents, Deployments and Feature Requests auto-detection, critical-work detection, stale-work detection, deployment health, project progress and attention queues.
 - Automation rule center for stale opportunities, high-value deals, overdue tasks, critical technical work, stale engineering work and new lead intake.
+- Client Outreach center with queued SMTP email, Meta WhatsApp Cloud API template messages, consent confirmation, E.164 validation, retries, rate limiting and duplicate-send protection.
 - Native Twenty AI integration. The Sales, Tech and Executive AI buttons prefill Twenty's built-in AI chat with workspace-aware analysis prompts.
 - Schema-aware object/field detection. WingerX does not hard-code workspace record IDs and safely ignores fields that do not exist or are not readable.
 - Production Dockerfile and Render Blueprint with a web server, queue worker, PostgreSQL and Redis-compatible Key Value service.
@@ -37,6 +38,29 @@ The default Blueprint uses `STORAGE_TYPE=local`. This is acceptable for evaluati
 WingerX deliberately uses Twenty's native AI layer instead of calling a model directly from the browser. This keeps model credentials server-side and respects Twenty workspace permissions. After deployment, configure the AI provider/model in the Twenty administration/settings supported by the version you deployed. The WingerX AI buttons then hand the current analysis task to the native AI chat.
 
 No OpenAI, Anthropic, Google or other model key is hard-coded in this repository.
+
+## Client email and Meta WhatsApp
+
+Open `/wingerx`, select **Outreach**, choose a Person or Lead, confirm the contact details and consent, then send email, WhatsApp, or both. Email is placed on Twenty's retrying email queue. WhatsApp is submitted server-side to Meta's Cloud API, so the access token is never included in browser code or responses.
+
+The Render Blueprint asks for these secret/provider values during deployment:
+
+- `EMAIL_FROM_ADDRESS`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_USER`, `EMAIL_SMTP_PASSWORD`. Port `587`, TLS, the sender name and the SMTP driver are preconfigured; change them if your provider requires different settings.
+- `META_WHATSAPP_ACCESS_TOKEN`: use a production system-user/permanent token with only the required WhatsApp permissions, not a temporary dashboard token.
+- `META_WHATSAPP_PHONE_NUMBER_ID`: the numeric phone number ID from WhatsApp Manager/API setup, not the displayed phone number.
+
+The Blueprint defaults to Meta Graph API `v23.0`, template `client_follow_up`, and language `en_US`. These remain configurable with `META_WHATSAPP_GRAPH_VERSION`, `META_WHATSAPP_DEFAULT_TEMPLATE` and `META_WHATSAPP_DEFAULT_LANGUAGE` without changing code. Keep the selected Graph version supported in your Meta app and update it during normal API upgrades.
+
+Create and obtain approval for a Meta utility template named `client_follow_up` with two body placeholders in this order:
+
+1. Client name (`{{1}}`)
+2. Follow-up message (`{{2}}`)
+
+If you use a different approved template or locale, enter it in the Outreach form or change the defaults. Meta will reject a template name, language, category or variable count that does not match the approved template; the dashboard displays Meta's returned error.
+
+The server requires explicit consent confirmation on every send, validates WhatsApp destinations as E.164 numbers, allows 30 attempts per channel per workspace per minute, retries Meta throttling/server errors, times out slow calls, and uses a per-request idempotency key. Meta acceptance means the request was accepted for processing, not that delivery/read status has been received. Email “queued” means Twenty accepted the job for its background worker.
+
+For reliable WhatsApp delivery, store phone numbers with country code, for example `+919876543210`. Never send promotional or business-initiated free-form messages: use approved templates and honor opt-outs. Provider credentials belong only in Render environment variables and must never be committed.
 
 ## Sales data model
 
@@ -74,7 +98,7 @@ Running an automation creates real Twenty tasks, assigns the source record's own
 
 ## After first login
 
-Create your workspace/admin account, import or connect your CRM data, then open `/wingerx`. The dashboard will immediately report which Sales and Tech objects it detected. Connect email/calendar and configure Twenty AI/workflows as needed; WingerX uses those native capabilities rather than duplicating credentials in frontend code.
+Create your workspace/admin account, import or connect your CRM data, then open `/wingerx`. The dashboard will immediately report which Sales and Tech objects it detected. Configure the email and Meta values above, then configure Twenty AI/calendar as needed. WingerX keeps all provider credentials in server environment variables rather than frontend code.
 
 ## Updating the fork
 

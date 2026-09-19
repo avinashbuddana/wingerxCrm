@@ -1,5 +1,5 @@
 import { styled } from '@linaria/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
@@ -11,6 +11,7 @@ import {
   type WingerXAutomationRule,
   useWingerXAutomation,
 } from '@/wingerx/hooks/useWingerXAutomation';
+import { useWingerXNotifications } from '@/wingerx/hooks/useWingerXNotifications';
 import { useWingerXObjectRecords } from '@/wingerx/hooks/useWingerXObjectRecords';
 import {
   computeWingerXSalesMetrics,
@@ -39,7 +40,7 @@ const RECORD_LIMIT = 500;
 const STALE_DEAL_DAYS = 14;
 const STALE_TECH_DAYS = 7;
 
-type Tab = 'sales' | 'tech' | 'automation';
+type Tab = 'sales' | 'tech' | 'automation' | 'outreach';
 
 type DataResult = ReturnType<typeof useWingerXObjectRecords>;
 
@@ -394,6 +395,82 @@ const StyledRunSummary = styled.div`
   font-size: ${themeCssVariables.font.size.sm};
 `;
 
+const StyledFormGrid = styled.div`
+  display: grid;
+  gap: ${themeCssVariables.spacing[3]};
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const StyledField = styled.label`
+  display: flex;
+  flex-direction: column;
+  font-size: ${themeCssVariables.font.size.sm};
+  font-weight: 620;
+  gap: ${themeCssVariables.spacing[1]};
+`;
+
+const StyledInput = styled.input`
+  background: ${themeCssVariables.background.primary};
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.primary};
+  font-family: inherit;
+  font-size: ${themeCssVariables.font.size.sm};
+  padding: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledSelect = styled.select`
+  background: ${themeCssVariables.background.primary};
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.primary};
+  font-family: inherit;
+  font-size: ${themeCssVariables.font.size.sm};
+  padding: ${themeCssVariables.spacing[2]};
+`;
+
+const StyledTextArea = styled.textarea`
+  background: ${themeCssVariables.background.primary};
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.primary};
+  font-family: inherit;
+  font-size: ${themeCssVariables.font.size.sm};
+  min-height: 110px;
+  padding: ${themeCssVariables.spacing[2]};
+  resize: vertical;
+`;
+
+const StyledFullField = styled(StyledField)`
+  grid-column: 1 / -1;
+`;
+
+const StyledConsent = styled.label`
+  align-items: flex-start;
+  color: ${themeCssVariables.font.color.secondary};
+  display: flex;
+  font-size: ${themeCssVariables.font.size.sm};
+  gap: ${themeCssVariables.spacing[2]};
+  line-height: 1.45;
+`;
+
+const StyledHistoryRow = styled.div`
+  border-bottom: 1px solid ${themeCssVariables.border.color.light};
+  display: grid;
+  font-size: ${themeCssVariables.font.size.sm};
+  gap: ${themeCssVariables.spacing[2]};
+  grid-template-columns: 86px minmax(120px, 1fr) 110px;
+  padding: ${themeCssVariables.spacing[2]} 0;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+`;
+
 const Metric = ({
   label,
   value,
@@ -461,6 +538,11 @@ const useWingerXData = () => {
       'leadSource',
       'owner',
       'assignee',
+      'email',
+      'emails',
+      'phone',
+      'phoneNumber',
+      'phones',
       'createdAt',
       'updatedAt',
       'lastContactedAt',
@@ -469,7 +551,17 @@ const useWingerXData = () => {
   });
   const people = useWingerXObjectRecords({
     candidate: { names: ['person', 'people'], labels: ['person', 'people'] },
-    fields: ['name', 'jobTitle', 'createdAt', 'updatedAt'],
+    fields: [
+      'name',
+      'jobTitle',
+      'email',
+      'emails',
+      'phone',
+      'phoneNumber',
+      'phones',
+      'createdAt',
+      'updatedAt',
+    ],
     limit: RECORD_LIMIT,
   });
   const companies = useWingerXObjectRecords({
@@ -1120,6 +1212,368 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
   );
 };
 
+const getClientEmail = (record: WingerXRecord) => {
+  for (const key of ['email', 'workEmail', 'primaryEmail']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.includes('@')) return value;
+  }
+
+  for (const key of ['emails', 'emailAddress']) {
+    const value = record[key];
+    if (!value || typeof value !== 'object') continue;
+    const primaryEmail = (value as Record<string, unknown>).primaryEmail;
+    if (typeof primaryEmail === 'string' && primaryEmail.includes('@')) {
+      return primaryEmail;
+    }
+  }
+
+  return '';
+};
+
+const getClientPhone = (record: WingerXRecord) => {
+  for (const key of ['phone', 'phoneNumber', 'mobilePhone']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim().length > 0) return value;
+  }
+
+  const phones = record.phones;
+  if (phones && typeof phones === 'object') {
+    const primaryPhoneNumber = (phones as Record<string, unknown>)
+      .primaryPhoneNumber;
+    if (
+      typeof primaryPhoneNumber === 'string' &&
+      primaryPhoneNumber.trim().length > 0
+    ) {
+      return primaryPhoneNumber;
+    }
+  }
+
+  return '';
+};
+
+type DeliveryHistoryItem = {
+  id: string;
+  channel: 'Email' | 'WhatsApp';
+  recipient: string;
+  status: string;
+  sentAt: Date;
+};
+
+const OutreachView = ({
+  data,
+}: {
+  data: ReturnType<typeof useWingerXData>;
+}) => {
+  const { enqueueErrorSnackBar, enqueueSuccessSnackBar } = useSnackBar();
+  const {
+    configuration,
+    isLoadingConfiguration,
+    isSending,
+    sendEmail,
+    sendWhatsApp,
+  } = useWingerXNotifications();
+
+  const contacts = useMemo(() => {
+    const records = [...data.people.records, ...data.leads.records];
+
+    return records.filter(
+      (record, index) =>
+        records.findIndex((candidate) => candidate.id === record.id) === index,
+    );
+  }, [data.leads.records, data.people.records]);
+
+  const [selectedContactId, setSelectedContactId] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [subject, setSubject] = useState('WingerX follow-up');
+  const [message, setMessage] = useState(
+    'Thank you for speaking with us. We are following up with the next steps and will be happy to answer any questions.',
+  );
+  const [templateName, setTemplateName] = useState('client_follow_up');
+  const [languageCode, setLanguageCode] = useState('en_US');
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [history, setHistory] = useState<DeliveryHistoryItem[]>([]);
+
+  const selectedContact = contacts.find(
+    (record) => record.id === selectedContactId,
+  );
+  const clientName = selectedContact
+    ? getWingerXRecordName(selectedContact)
+    : 'Client';
+
+  useEffect(() => {
+    if (selectedContactId.length === 0 && contacts[0]) {
+      setSelectedContactId(contacts[0].id);
+    }
+  }, [contacts, selectedContactId]);
+
+  useEffect(() => {
+    if (!selectedContact) return;
+    setEmail(getClientEmail(selectedContact));
+    setPhone(getClientPhone(selectedContact));
+    setConsentConfirmed(false);
+  }, [selectedContact]);
+
+  useEffect(() => {
+    if (!configuration) return;
+    setTemplateName(configuration.whatsapp.defaultTemplate);
+    setLanguageCode(configuration.whatsapp.defaultLanguage);
+  }, [configuration]);
+
+  const remember = (
+    channel: DeliveryHistoryItem['channel'],
+    recipient: string,
+    status: string,
+  ) => {
+    setHistory((current) =>
+      [
+        {
+          id: crypto.randomUUID(),
+          channel,
+          recipient,
+          status,
+          sentAt: new Date(),
+        },
+        ...current,
+      ].slice(0, 12),
+    );
+  };
+
+  const handleEmail = async () => {
+    try {
+      const result = await sendEmail({
+        to: email,
+        subject,
+        message,
+        consentConfirmed,
+        clientName,
+        clientReference: selectedContact?.id,
+      });
+      remember('Email', email, result.status);
+      enqueueSuccessSnackBar({ message: `Email ${result.status}.` });
+    } catch (error) {
+      enqueueErrorSnackBar({
+        message: error instanceof Error ? error.message : 'Email failed.',
+      });
+    }
+  };
+
+  const handleWhatsApp = async () => {
+    try {
+      const result = await sendWhatsApp({
+        to: phone,
+        templateName,
+        languageCode,
+        variables: [clientName, message],
+        consentConfirmed,
+        clientName,
+        clientReference: selectedContact?.id,
+      });
+      remember('WhatsApp', phone, result.status);
+      enqueueSuccessSnackBar({
+        message: `WhatsApp message ${result.status} by Meta.`,
+      });
+    } catch (error) {
+      enqueueErrorSnackBar({
+        message:
+          error instanceof Error ? error.message : 'WhatsApp message failed.',
+      });
+    }
+  };
+
+  const handleBoth = async () => {
+    await handleEmail();
+    await handleWhatsApp();
+  };
+
+  const emailConfigured = configuration?.email.configured === true;
+  const whatsAppConfigured = configuration?.whatsapp.configured === true;
+
+  return (
+    <StyledGrid>
+      <StyledWidePanel>
+        <StyledPanelHeader>
+          <div>
+            <StyledPanelTitle>Client outreach</StyledPanelTitle>
+            <StyledRuleText>
+              Send a queued email and an approved Meta WhatsApp template from
+              the CRM. Provider secrets remain on the server.
+            </StyledRuleText>
+          </div>
+          <StyledChips>
+            <StyledChip>
+              <StyledDot />
+              Email:{' '}
+              {isLoadingConfiguration
+                ? 'checking'
+                : emailConfigured
+                  ? 'ready'
+                  : 'setup required'}
+            </StyledChip>
+            <StyledChip>
+              <StyledDot />
+              WhatsApp:{' '}
+              {isLoadingConfiguration
+                ? 'checking'
+                : whatsAppConfigured
+                  ? 'ready'
+                  : 'setup required'}
+            </StyledChip>
+          </StyledChips>
+        </StyledPanelHeader>
+
+        <StyledFormGrid>
+          <StyledFullField>
+            Client
+            <StyledSelect
+              value={selectedContactId}
+              onChange={(event) => setSelectedContactId(event.target.value)}
+            >
+              {contacts.length === 0 ? (
+                <option value="">No People or Leads found</option>
+              ) : null}
+              {contacts.map((record) => (
+                <option key={record.id} value={record.id}>
+                  {getWingerXRecordName(record)}
+                </option>
+              ))}
+            </StyledSelect>
+          </StyledFullField>
+
+          <StyledField>
+            Client email
+            <StyledInput
+              type="email"
+              placeholder="client@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </StyledField>
+          <StyledField>
+            WhatsApp number (E.164)
+            <StyledInput
+              type="tel"
+              placeholder="+919876543210"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+          </StyledField>
+          <StyledField>
+            Email subject
+            <StyledInput
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+            />
+          </StyledField>
+          <StyledField>
+            Approved WhatsApp template
+            <StyledInput
+              value={templateName}
+              onChange={(event) => setTemplateName(event.target.value)}
+            />
+          </StyledField>
+          <StyledField>
+            Template language
+            <StyledInput
+              value={languageCode}
+              onChange={(event) => setLanguageCode(event.target.value)}
+            />
+          </StyledField>
+          <StyledFullField>
+            Client message
+            <StyledTextArea
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+            />
+          </StyledFullField>
+        </StyledFormGrid>
+
+        <StyledRuleText>
+          The WhatsApp template is sent with two body variables in this order:
+          client name, then client message. Create the approved Meta template
+          with matching placeholders.
+        </StyledRuleText>
+        <StyledConsent>
+          <input
+            checked={consentConfirmed}
+            type="checkbox"
+            onChange={(event) => setConsentConfirmed(event.target.checked)}
+          />
+          I confirm this client consented to receive messages through the
+          selected channel(s), and the WhatsApp template is approved for this
+          use.
+        </StyledConsent>
+
+        <StyledHeaderActions>
+          <StyledButton
+            disabled={
+              isSending ||
+              !emailConfigured ||
+              !consentConfirmed ||
+              email.length === 0
+            }
+            type="button"
+            onClick={handleEmail}
+          >
+            Send email
+          </StyledButton>
+          <StyledButton
+            disabled={
+              isSending ||
+              !whatsAppConfigured ||
+              !consentConfirmed ||
+              phone.length === 0
+            }
+            type="button"
+            onClick={handleWhatsApp}
+          >
+            Send WhatsApp
+          </StyledButton>
+          <StyledPrimaryButton
+            disabled={
+              isSending ||
+              !emailConfigured ||
+              !whatsAppConfigured ||
+              !consentConfirmed ||
+              email.length === 0 ||
+              phone.length === 0
+            }
+            type="button"
+            onClick={handleBoth}
+          >
+            {isSending ? 'Sending…' : 'Send both'}
+          </StyledPrimaryButton>
+        </StyledHeaderActions>
+      </StyledWidePanel>
+
+      <StyledWidePanel>
+        <StyledPanelHeader>
+          <StyledPanelTitle>Recent sends</StyledPanelTitle>
+          <StyledBadge>this session</StyledBadge>
+        </StyledPanelHeader>
+        {history.length === 0 ? (
+          <StyledEmpty>
+            No messages sent in this browser session. Server logs retain the
+            workspace and client reference for operational auditing.
+          </StyledEmpty>
+        ) : (
+          <div>
+            {history.map((item) => (
+              <StyledHistoryRow key={item.id}>
+                <div>{item.channel}</div>
+                <div>{item.recipient}</div>
+                <div>
+                  {item.status} · {item.sentAt.toLocaleTimeString()}
+                </div>
+              </StyledHistoryRow>
+            ))}
+          </div>
+        )}
+      </StyledWidePanel>
+    </StyledGrid>
+  );
+};
+
 const AutomationView = ({
   data,
 }: {
@@ -1407,10 +1861,10 @@ export const WingerXCommandCenterV2Page = () => {
         <StyledTitleBlock>
           <StyledTitle>WingerX Command Center</StyledTitle>
           <StyledSubtitle>
-            Live sales, pipeline, team, technical and automation intelligence
-            built directly on Twenty's metadata-aware record layer. Custom
-            objects are detected automatically, so the dashboard grows with your
-            workspace without hard-coded record IDs.
+            Live sales, pipeline, team, technical, outreach and automation
+            intelligence built directly on Twenty's metadata-aware record layer.
+            Custom objects are detected automatically, so the dashboard grows
+            with your workspace without hard-coded record IDs.
           </StyledSubtitle>
         </StyledTitleBlock>
         <StyledHeaderActions>
@@ -1459,6 +1913,13 @@ export const WingerXCommandCenterV2Page = () => {
           Tech
         </StyledTab>
         <StyledTab
+          data-active={tab === 'outreach'}
+          type="button"
+          onClick={() => setTab('outreach')}
+        >
+          Outreach
+        </StyledTab>
+        <StyledTab
           data-active={tab === 'automation'}
           type="button"
           onClick={() => setTab('automation')}
@@ -1469,6 +1930,7 @@ export const WingerXCommandCenterV2Page = () => {
 
       {tab === 'sales' ? <SalesView data={data} /> : null}
       {tab === 'tech' ? <TechView data={data} /> : null}
+      {tab === 'outreach' ? <OutreachView data={data} /> : null}
       {tab === 'automation' ? <AutomationView data={data} /> : null}
     </StyledPage>
   );
