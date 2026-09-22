@@ -235,6 +235,14 @@ a separate Cloud Storage bucket or take scheduled persistent-disk snapshots.
 Build the new image from Cloud Shell using step 2, then run on the VM:
 
 ```bash
+export WINGERX_REGISTRY="asia-south1-docker.pkg.dev"
+
+curl --fail --silent --show-error \
+  --header 'Metadata-Flavor: Google' \
+  'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' \
+  | python3 -c 'import json, sys; print(json.load(sys.stdin)["access_token"])' \
+  | docker login --username oauth2accesstoken --password-stdin "https://${WINGERX_REGISTRY}"
+
 cd /opt/wingerx/repo
 git pull --ff-only
 cd deploy/gcp-vm
@@ -244,3 +252,5 @@ docker image prune -f
 ```
 
 Do not change `APP_SECRET` or `ENCRYPTION_KEY` during normal deployments.
+Do not run `docker compose down --volumes`; that command deletes the named data
+volumes used by PostgreSQL, Redis and local attachments.
