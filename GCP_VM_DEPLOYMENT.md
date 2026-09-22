@@ -210,27 +210,7 @@ domain and create the initial admin workspace. Then verify:
 4. A test email is queued through Brevo.
 5. A consented WhatsApp template is accepted by Meta.
 
-## 9. Back up PostgreSQL
-
-The included script creates compressed PostgreSQL dumps and retains seven
-days locally:
-
-```bash
-cd /opt/wingerx/repo/deploy/gcp-vm
-chmod +x backup-postgres.sh
-./backup-postgres.sh
-```
-
-Schedule it daily with `crontab -e`:
-
-```cron
-15 2 * * * /opt/wingerx/repo/deploy/gcp-vm/backup-postgres.sh >> /opt/wingerx/postgres-backup.log 2>&1
-```
-
-Local backups do not survive deletion of the VM disk. Copy important dumps to
-a separate Cloud Storage bucket or take scheduled persistent-disk snapshots.
-
-## 10. Deploy updates
+## 9. Deploy updates
 
 Build the new image from Cloud Shell using step 2, then run on the VM:
 
