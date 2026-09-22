@@ -1,0 +1,125 @@
+name: wingerx
+
+x-wingerx-environment: &wingerx-environment
+  NODE_ENV: production
+  PG_DATABASE_URL: postgresql://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:?Set PG_DATABASE_PASSWORD}@postgres:5432/${PG_DATABASE_NAME:-default}
+  REDIS_URL: redis://redis:6379
+  SERVER_URL: ${SERVER_URL:?Set SERVER_URL}
+  APP_SECRET: ${APP_SECRET:?Set APP_SECRET}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY}
+  STORAGE_TYPE: ${STORAGE_TYPE:-local}
+  IS_BILLING_ENABLED: ${IS_BILLING_ENABLED:-false}
+  APPLICATION_LOG_DRIVER: ${APPLICATION_LOG_DRIVER:-CONSOLE}
+  EMAIL_DRIVER: ${EMAIL_DRIVER:-SMTP}
+  EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-WingerX}
+  EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+  EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-}
+  EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-587}
+  EMAIL_SMTP_USER: ${EMAIL_SMTP_USER:-}
+  EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD:-}
+  EMAIL_SMTP_NO_TLS: ${EMAIL_SMTP_NO_TLS:-false}
+  META_WHATSAPP_ACCESS_TOKEN: ${META_WHATSAPP_ACCESS_TOKEN:-}
+  META_WHATSAPP_PHONE_NUMBER_ID: ${META_WHATSAPP_PHONE_NUMBER_ID:-}
+  META_WHATSAPP_GRAPH_VERSION: ${META_WHATSAPP_GRAPH_VERSION:-v23.0}
+  META_WHATSAPP_DEFAULT_TEMPLATE: ${META_WHATSAPP_DEFAULT_TEMPLATE:-client_follow_up}
+  META_WHATSAPP_DEFAULT_LANGUAGE: ${META_WHATSAPP_DEFAULT_LANGUAGE:-en_US}
+
+services:
+  server:
+    image: ${WINGERX_IMAGE:?Set WINGERX_IMAGE}
+    env_file:
+      - .env
+    environment:
+      <<: *wingerx-environment
+      NODE_PORT: 10000
+      DISABLE_DB_MIGRATIONS: "false"
+      DISABLE_CRON_JOBS_REGISTRATION: "false"
+      SIGN_IN_PREFILLED: ${SIGN_IN_PREFILLED:-false}
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    expose:
+      - "10000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:10000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+
+  worker:
+    image: ${WINGERX_IMAGE:?Set WINGERX_IMAGE}
+    command: ["node", "dist/queue-worker/queue-worker"]
+    env_file:
+      - .env
+    environment:
+      <<: *wingerx-environment
+      DISABLE_DB_MIGRATIONS: "true"
+      DISABLE_CRON_JOBS_REGISTRATION: "true"
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PG_DATABASE_NAME:-default}
+      POSTGRES_USER: ${PG_DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:?Set PG_DATABASE_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  server-local-data:
+  caddy-data:
+  caddy-config:
