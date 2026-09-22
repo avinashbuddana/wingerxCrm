@@ -1,0 +1,154 @@
+services:
+  - type: web
+    name: wingerx-crm
+    runtime: docker
+    region: singapore
+    plan: 1c-2g
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_PORT
+        value: '10000'
+      - key: PG_DATABASE_URL
+        fromDatabase:
+          name: wingerx-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: wingerx-redis
+          type: keyvalue
+          property: connectionString
+      - key: SERVER_URL
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: APP_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: STORAGE_TYPE
+        value: local
+      - key: DISABLE_DB_MIGRATIONS
+        value: 'false'
+      - key: DISABLE_CRON_JOBS_REGISTRATION
+        value: 'false'
+      - key: IS_BILLING_ENABLED
+        value: 'false'
+      - key: SIGN_IN_PREFILLED
+        value: 'false'
+      - key: APPLICATION_LOG_DRIVER
+        value: CONSOLE
+      - key: EMAIL_DRIVER
+        value: SMTP
+      - key: EMAIL_FROM_NAME
+        value: WingerX
+      - key: EMAIL_FROM_ADDRESS
+        sync: false
+      - key: EMAIL_SMTP_HOST
+        sync: false
+      - key: EMAIL_SMTP_PORT
+        value: '587'
+      - key: EMAIL_SMTP_USER
+        sync: false
+      - key: EMAIL_SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_SMTP_NO_TLS
+        value: 'false'
+      - key: META_WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: META_WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: META_WHATSAPP_GRAPH_VERSION
+        value: v23.0
+      - key: META_WHATSAPP_DEFAULT_TEMPLATE
+        value: client_follow_up
+      - key: META_WHATSAPP_DEFAULT_LANGUAGE
+        value: en_US
+
+  - type: worker
+    name: wingerx-worker
+    runtime: docker
+    region: singapore
+    plan: 1c-2g
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    dockerCommand: node dist/queue-worker/queue-worker
+    envVars:
+      - key: PG_DATABASE_URL
+        fromDatabase:
+          name: wingerx-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: wingerx-redis
+          type: keyvalue
+          property: connectionString
+      - key: SERVER_URL
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: APP_SECRET
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: APP_SECRET
+      - key: ENCRYPTION_KEY
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: ENCRYPTION_KEY
+      - key: STORAGE_TYPE
+        value: local
+      - key: DISABLE_DB_MIGRATIONS
+        value: 'true'
+      - key: DISABLE_CRON_JOBS_REGISTRATION
+        value: 'true'
+      - key: IS_BILLING_ENABLED
+        value: 'false'
+      - key: APPLICATION_LOG_DRIVER
+        value: CONSOLE
+      - key: EMAIL_DRIVER
+        value: SMTP
+      - key: EMAIL_FROM_NAME
+        value: WingerX
+      - key: EMAIL_FROM_ADDRESS
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: EMAIL_FROM_ADDRESS
+      - key: EMAIL_SMTP_HOST
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: EMAIL_SMTP_HOST
+      - key: EMAIL_SMTP_PORT
+        value: '587'
+      - key: EMAIL_SMTP_USER
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: EMAIL_SMTP_USER
+      - key: EMAIL_SMTP_PASSWORD
+        fromService:
+          name: wingerx-crm
+          type: web
+          envVarKey: EMAIL_SMTP_PASSWORD
+      - key: EMAIL_SMTP_NO_TLS
+        value: 'false'
+
+  - type: keyvalue
+    name: wingerx-redis
+    region: singapore
+    plan: 256mb
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: wingerx-db
+    region: singapore
+    plan: 0.5c-1g
+    postgresMajorVersion: '18'
+    ipAllowList: []

@@ -83,6 +83,7 @@ import { ChannelSyncModule } from 'src/modules/connected-account/channel-sync/ch
 import { CreateCalendarEventModule } from 'src/modules/calendar/calendar-event-creation-manager/create-calendar-event.module';
 import { CallRecordingModule } from 'src/modules/call-recording/call-recording.module';
 import { DashboardModule } from 'src/modules/dashboard/dashboard.module';
+import { WingerXModule } from 'src/modules/wingerx/wingerx.module';
 import { SendEmailModule } from 'src/modules/messaging/message-outbound-manager/send-email.module';
 import { ClientConfigModule } from './client-config/client-config.module';
 import { EventLogsViewerModule } from './event-logs/event-logs-viewer.module';
@@ -181,6 +182,7 @@ import { FileModule } from './file/file.module';
     TrashCleanupModule,
     CodeInterpreterSessionCleanupModule,
     DashboardModule,
+    WingerXModule,
     EventLogsViewerModule,
     PreInstalledAppsModule,
     AppBillingModule,

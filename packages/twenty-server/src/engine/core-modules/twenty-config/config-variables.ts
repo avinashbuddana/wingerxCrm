@@ -546,6 +546,47 @@ export class ConfigVariables {
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description: 'Meta WhatsApp Cloud API permanent access token',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsOptional()
+  META_WHATSAPP_ACCESS_TOKEN = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description: 'Meta WhatsApp Cloud API phone number ID',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  META_WHATSAPP_PHONE_NUMBER_ID = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description: 'Meta Graph API version used by WhatsApp Cloud API',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  META_WHATSAPP_GRAPH_VERSION = 'v23.0';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description: 'Default approved WhatsApp message template',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  META_WHATSAPP_DEFAULT_TEMPLATE = 'client_follow_up';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description: 'Default language for WhatsApp message templates',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  META_WHATSAPP_DEFAULT_LANGUAGE = 'en_US';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     description:
       'When enabled, only server admins can create new workspaces, and signing up without a pending invitation or an approved access domain is refused. Ignored during initial setup when no workspace exists.',
     type: ConfigVariableType.BOOLEAN,

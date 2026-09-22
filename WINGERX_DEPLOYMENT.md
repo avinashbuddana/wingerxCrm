@@ -1,0 +1,105 @@
+# WingerX CRM — Production Deployment
+
+This fork contains the WingerX Sales + Tech Command Center on top of Twenty CRM. The custom dashboard is available at `/wingerx` after login and is linked directly from the main navigation.
+
+## What is included
+
+- Sales command center with pipeline, won/lost, weighted forecast, average deal size, stage funnel, lead source distribution, owner performance, stale-deal detection, high-value deal detection, overdue follow-up detection, and largest-open-deal views.
+- Tech command center with Projects, Technical Requests, Bugs, Incidents, Deployments and Feature Requests auto-detection, critical-work detection, stale-work detection, deployment health, project progress and attention queues.
+- Automation rule center for stale opportunities, high-value deals, overdue tasks, critical technical work, stale engineering work and new lead intake.
+- Client Outreach center with queued SMTP email, Meta WhatsApp Cloud API template messages, consent confirmation, E.164 validation, retries, rate limiting and duplicate-send protection.
+- Native Twenty AI integration. The Sales, Tech and Executive AI buttons prefill Twenty's built-in AI chat with workspace-aware analysis prompts.
+- Schema-aware object/field detection. WingerX does not hard-code workspace record IDs and safely ignores fields that do not exist or are not readable.
+- Production Dockerfile and Render Blueprint with a web server, queue worker, PostgreSQL and Redis-compatible Key Value service.
+
+## Deploy on Render
+
+Use Render Blueprint deployment and select this repository. Render will read `render.yaml` and create:
+
+- `wingerx-crm` — Twenty web/server service
+- `wingerx-worker` — Twenty queue/background worker
+- `wingerx-db` — PostgreSQL
+- `wingerx-redis` — Redis-compatible Key Value
+
+`SERVER_URL` is wired automatically from Render's generated `RENDER_EXTERNAL_URL`, so the initial Blueprint does not require you to guess the service URL. If you later attach a custom domain, update `SERVER_URL` on the web and worker to that final HTTPS URL so generated links and OAuth callbacks use the custom domain.
+
+The Blueprint generates `APP_SECRET` and `ENCRYPTION_KEY`. Do not replace either value after production data has been created unless you are intentionally rotating keys using Twenty's supported rotation procedure.
+
+## Required production settings
+
+`NODE_PORT=10000` is already configured. Database and Redis connection strings are wired automatically by the Blueprint. Database migrations and Twenty cron registration run only on the web service; the worker has both disabled to prevent duplicate registration.
+
+The Blueprint places every service in Render's Singapore region for lower latency from India. It uses 2 GB compute for both the web service and worker, 1 GB PostgreSQL, and 256 MB Key Value so the CRM is not launched on undersized defaults. PostgreSQL and Key Value have empty public IP allowlists and are reachable only over Render's private network.
+
+The default Blueprint uses `STORAGE_TYPE=local`. This is acceptable for evaluation and CRM records because records live in PostgreSQL, but local file storage on Render is not appropriate for durable production attachments. Before storing important uploaded files, switch Twenty to S3-compatible storage and configure the `STORAGE_S3_*` variables supported by Twenty. Do not commit storage credentials.
+
+## AI
+
+WingerX deliberately uses Twenty's native AI layer instead of calling a model directly from the browser. This keeps model credentials server-side and respects Twenty workspace permissions. After deployment, configure the AI provider/model in the Twenty administration/settings supported by the version you deployed. The WingerX AI buttons then hand the current analysis task to the native AI chat.
+
+No OpenAI, Anthropic, Google or other model key is hard-coded in this repository.
+
+## Client email and Meta WhatsApp
+
+Open `/wingerx`, select **Outreach**, choose a Person or Lead, confirm the contact details and consent, then send email, WhatsApp, or both. Email is placed on Twenty's retrying email queue. WhatsApp is submitted server-side to Meta's Cloud API, so the access token is never included in browser code or responses.
+
+The Render Blueprint asks for these secret/provider values during deployment:
+
+- `EMAIL_FROM_ADDRESS`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_USER`, `EMAIL_SMTP_PASSWORD`. Port `587`, TLS, the sender name and the SMTP driver are preconfigured; change them if your provider requires different settings.
+- `META_WHATSAPP_ACCESS_TOKEN`: use a production system-user/permanent token with only the required WhatsApp permissions, not a temporary dashboard token.
+- `META_WHATSAPP_PHONE_NUMBER_ID`: the numeric phone number ID from WhatsApp Manager/API setup, not the displayed phone number.
+
+The Blueprint defaults to Meta Graph API `v23.0`, template `client_follow_up`, and language `en_US`. These remain configurable with `META_WHATSAPP_GRAPH_VERSION`, `META_WHATSAPP_DEFAULT_TEMPLATE` and `META_WHATSAPP_DEFAULT_LANGUAGE` without changing code. Keep the selected Graph version supported in your Meta app and update it during normal API upgrades.
+
+Create and obtain approval for a Meta utility template named `client_follow_up` with two body placeholders in this order:
+
+1. Client name (`{{1}}`)
+2. Follow-up message (`{{2}}`)
+
+If you use a different approved template or locale, enter it in the Outreach form or change the defaults. Meta will reject a template name, language, category or variable count that does not match the approved template; the dashboard displays Meta's returned error.
+
+The server requires explicit consent confirmation on every send, validates WhatsApp destinations as E.164 numbers, allows 30 attempts per channel per workspace per minute, retries Meta throttling/server errors, times out slow calls, and uses a per-request idempotency key. Meta acceptance means the request was accepted for processing, not that delivery/read status has been received. Email “queued” means Twenty accepted the job for its background worker.
+
+For reliable WhatsApp delivery, store phone numbers with country code, for example `+919876543210`. Never send promotional or business-initiated free-form messages: use approved templates and honor opt-outs. Provider credentials belong only in Render environment variables and must never be committed.
+
+## Sales data model
+
+The dashboard automatically detects standard/custom objects whose names or labels match Leads, People, Companies, Opportunities/Deals and Tasks. It also looks for common fields such as stage/status, amount/value/ARR, owner/assignee, lead source, close date, due date and timestamps.
+
+If your existing workspace uses different custom labels, add those names to `useWingerXData` in `packages/twenty-front/src/pages/wingerx/WingerXCommandCenterV2Page.tsx`. The reusable query hook only requests readable fields that actually exist, preventing GraphQL failures from absent optional fields.
+
+## Tech data model
+
+WingerX automatically detects Projects, Technical Requests/Tech Requests, Bugs, Incidents, Deployments and Feature Requests. Priority/severity values containing `critical`, `P0`, `P1`, `urgent`, `highest` or `blocker` enter the critical queue. Open technical records with no update for seven days enter the stale queue.
+
+If a technical object does not yet exist in your Twenty workspace, its dashboard card remains available and reports `Object not found` rather than failing the page. Create or import that object later and it will begin populating automatically.
+
+## Automation behavior
+
+The command center evaluates these rules from live CRM records and can execute them individually or together from the Automation tab:
+
+1. Open opportunity unchanged for 14+ days → stale-deal escalation signal.
+2. Open deal greater than 1.5× the average won-deal size → high-value watch.
+3. Open task past its due date → overdue-follow-up signal.
+4. Technical priority/severity matching P0/P1/critical/urgent/blocker → critical escalation signal.
+5. Open technical record unchanged for 7+ days → stale-engineering signal.
+6. Lead/person created in the past 24 hours → new-lead response signal.
+
+Running an automation creates real Twenty tasks, assigns the source record's owner when available (otherwise the signed-in user), applies a rule-specific due date, and links the task to its originating opportunity, lead, bug, incident, technical request, or feature request. Task titles contain a stable WingerX marker, so re-running a rule skips work already created instead of creating duplicates. Every mutation uses the signed-in user's Twenty permissions and reports created, skipped, and failed counts in the interface.
+
+## Security
+
+- Never commit API keys, model keys, SMTP credentials, OAuth secrets or database passwords.
+- Keep the database and Redis services private; the Blueprint exposes neither publicly.
+- Use Twenty roles/permissions for sales and technical teams.
+- Create API keys only for integrations that need them and assign the least-privileged role available.
+- Keep `APP_SECRET` and `ENCRYPTION_KEY` stable and private.
+- Use HTTPS for `SERVER_URL`.
+
+## After first login
+
+Create your workspace/admin account, import or connect your CRM data, then open `/wingerx`. The dashboard will immediately report which Sales and Tech objects it detected. Configure the email and Meta values above, then configure Twenty AI/calendar as needed. WingerX keeps all provider credentials in server environment variables rather than frontend code.
+
+## Updating the fork
+
+Keep WingerX changes on a dedicated branch/PR and periodically merge upstream Twenty into your fork. The WingerX implementation is isolated under `packages/twenty-front/src/modules/wingerx`, `packages/twenty-front/src/pages/wingerx`, one route entry, one navigation entry, `Dockerfile.render` and `render.yaml`, which reduces upgrade conflicts.
