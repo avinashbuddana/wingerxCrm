@@ -27,6 +27,7 @@ x-wingerx-environment: &wingerx-environment
 services:
   server:
     image: ${WINGERX_IMAGE:?Set WINGERX_IMAGE}
+    command: ["yarn", "start:prod"]
     env_file:
       - .env
     environment:
@@ -54,7 +55,7 @@ services:
 
   worker:
     image: ${WINGERX_IMAGE:?Set WINGERX_IMAGE}
-    command: ["node", "dist/queue-worker/queue-worker"]
+    command: ["yarn", "worker:prod"]
     env_file:
       - .env
     environment:
