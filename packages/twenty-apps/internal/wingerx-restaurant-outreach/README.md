@@ -20,6 +20,12 @@ python3 scripts/prepare-restaurant-import.py /path/to/prospects.xlsx /path/to/re
 
 Store prospect workbooks and exports outside the repository. The CSV includes no permissions or scheduled actions. Record the restaurant's channel permission and next action in Twenty during qualification.
 
+## Use the Neurixa POS email template
+
+In the WingerX Command Center, open **Outreach**. Choose a client or enter a restaurant's business email, then click **Use Neurixa POS template**. Review the editable email subject and message, including Abhi's signature and the 30-minute Calendly link. When the email address matches the selected client, the template uses that client's name.
+
+The **Send email** button uses the configured WingerX mail sender. Check the From address and reply delivery with an internal test before sending the template to restaurants.
+
 ## Validate the batch planner
 
 ```sh
