@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "intent": { "type": "string", "enum": ["demo", "pricing", "question", "not_interested", "opt_out", "other"] },
+    "draft": { "type": "string" }
+  },
+  "required": ["intent", "draft"],
+  "additionalProperties": false
+}
