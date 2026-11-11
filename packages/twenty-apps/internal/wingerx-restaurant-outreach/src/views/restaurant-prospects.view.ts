@@ -5,6 +5,8 @@ import {
   RESTAURANT_PROSPECT_ID,
 } from '../objects/restaurant-prospect.object';
 
+export const RESTAURANT_PROSPECTS_VIEW_ID = '82dfb03a-bf10-4607-985c-39e9c80eab00';
+
 const PROSPECT_FIELDS = [
   ['name', 240],
   ['market', 140],
@@ -16,9 +18,9 @@ const PROSPECT_FIELDS = [
 ] as const;
 
 export default defineView({
-  universalIdentifier: '82dfb03a-bf10-4607-985c-39e9c80eab00',
+  universalIdentifier: RESTAURANT_PROSPECTS_VIEW_ID,
   objectUniversalIdentifier: RESTAURANT_PROSPECT_ID,
-  name: 'Restaurant prospects',
+  name: 'All Restaurants',
   type: ViewType.TABLE,
   icon: 'IconList',
   position: 0,
