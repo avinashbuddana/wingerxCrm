@@ -11,7 +11,7 @@ export const RESTAURANT_FIELDS = {
   businessPhone: '82dfb03a-bf10-4607-985c-39e9c80eaf15',
   businessEmail: '82dfb03a-bf10-4607-985c-39e9c80eaf16',
   website: '82dfb03a-bf10-4607-985c-39e9c80eaf17',
-  address: '82dfb03a-bf10-4607-985c-39e9c80eaf18',
+  restaurantAddress: '82dfb03a-bf10-4607-985c-39e9c80eaf18',
   stage: '82dfb03a-bf10-4607-985c-39e9c80eaf19',
   emailPermissionAt: '82dfb03a-bf10-4607-985c-39e9c80eaf20',
   whatsappPermissionAt: '82dfb03a-bf10-4607-985c-39e9c80eaf21',
@@ -42,7 +42,7 @@ const textFields = [
   ['businessPhone', 'Business phone', 'IconPhone'],
   ['businessEmail', 'Business email', 'IconMail'],
   ['website', 'Website', 'IconLink'],
-  ['address', 'Address', 'IconMapPin'],
+  ['restaurantAddress', 'Address', 'IconMapPin'],
   ['permissionNotes', 'Permission notes', 'IconNotes'],
 ] as const;
 

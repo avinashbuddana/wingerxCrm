@@ -3,18 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "keywords": ["twenty-app"],
+  "keywords": [
+    "twenty-app"
+  ],
   "engines": {
     "node": "^24.5.0",
     "twenty": ">=2.31.0"
   },
   "packageManager": "yarn@4.13.0",
   "scripts": {
+    "lint": "oxlint src scripts tests",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mts tests/*.test.mjs",
     "twenty": "twenty"
   },
   "devDependencies": {
+    "oxlint": "^0.16.0",
     "twenty-sdk": "2.31.0",
     "typescript": "5.9.3"
   }
