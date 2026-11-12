@@ -28,6 +28,10 @@ export class SendWingerXEmailDto {
   @IsBoolean()
   consentConfirmed: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  useNeurixaPosTemplate?: boolean;
+
   @IsUUID()
   idempotencyKey: string;
 

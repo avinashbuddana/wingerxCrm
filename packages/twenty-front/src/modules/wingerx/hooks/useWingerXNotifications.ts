@@ -23,6 +23,7 @@ type EmailInput = {
   subject: string;
   message: string;
   consentConfirmed: boolean;
+  useNeurixaPosTemplate?: boolean;
   clientName?: string;
   clientReference?: string;
 };
