@@ -4,6 +4,7 @@ import { plainToClass } from 'class-transformer';
 import {
   IsDateString,
   IsDefined,
+  IsEmail,
   IsEnum,
   IsIn,
   IsInt,
@@ -543,6 +544,25 @@ export class ConfigVariables {
     type: ConfigVariableType.STRING,
   })
   EMAIL_SMTP_PASSWORD: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Verified sender address for WingerX outreach. When empty, use EMAIL_FROM_ADDRESS.',
+    type: ConfigVariableType.STRING,
+  })
+  @ValidateIf((_, value) => value !== '')
+  @IsEmail()
+  WINGERX_EMAIL_FROM_ADDRESS = '';
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
+      'Sender name for WingerX outreach. When empty, use EMAIL_FROM_NAME.',
+    type: ConfigVariableType.STRING,
+  })
+  @IsString()
+  WINGERX_EMAIL_FROM_NAME = '';
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
