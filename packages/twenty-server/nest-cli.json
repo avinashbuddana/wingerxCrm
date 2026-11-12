@@ -17,6 +17,10 @@
     "watchAssets": true,
     "assets": [
       {
+        "include": "modules/wingerx/assets/*",
+        "outDir": "dist/assets"
+      },
+      {
         "include": "engine/core-modules/logic-function/logic-function-resource/constants/seed-project/**",
         "outDir": "dist/assets"
       },

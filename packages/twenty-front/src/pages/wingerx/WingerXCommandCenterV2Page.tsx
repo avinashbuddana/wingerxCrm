@@ -1292,6 +1292,7 @@ const OutreachView = ({
   const [phone, setPhone] = useState('');
   const [subject, setSubject] = useState('WingerX follow-up');
   const [emailMessage, setEmailMessage] = useState(DEFAULT_OUTREACH_MESSAGE);
+  const [useNeurixaPosTemplate, setUseNeurixaPosTemplate] = useState(false);
   const [whatsAppMessage, setWhatsAppMessage] = useState(
     DEFAULT_OUTREACH_MESSAGE,
   );
@@ -1356,6 +1357,7 @@ const OutreachView = ({
 
     setSubject(draft.subject);
     setEmailMessage(draft.message);
+    setUseNeurixaPosTemplate(true);
   };
 
   const handleEmail = async () => {
@@ -1365,6 +1367,7 @@ const OutreachView = ({
         subject,
         message: emailMessage,
         consentConfirmed,
+        useNeurixaPosTemplate,
         clientName,
         clientReference: selectedContact?.id,
       });
@@ -1472,6 +1475,16 @@ const OutreachView = ({
             <StyledButton type="button" onClick={handleUseNeurixaPosTemplate}>
               Use Neurixa POS template
             </StyledButton>
+            <StyledConsent>
+              <input
+                type="checkbox"
+                checked={useNeurixaPosTemplate}
+                onChange={(event) =>
+                  setUseNeurixaPosTemplate(event.target.checked)
+                }
+              />
+              Include branded layout and POS demo materials
+            </StyledConsent>
           </StyledHeaderActions>
           <StyledFullField>
             Email subject

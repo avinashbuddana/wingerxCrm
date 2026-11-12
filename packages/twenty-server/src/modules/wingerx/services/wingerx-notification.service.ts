@@ -13,6 +13,7 @@ import { EmailService } from 'src/engine/core-modules/email/email.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { SendWingerXEmailDto } from 'src/modules/wingerx/dtos/send-wingerx-email.dto';
 import { SendWingerXWhatsAppDto } from 'src/modules/wingerx/dtos/send-wingerx-whatsapp.dto';
+import { buildNeurixaPosEmailContent } from 'src/modules/wingerx/utils/build-neurixa-pos-email-content';
 
 type NotificationResult = {
   channel: 'email' | 'whatsapp';
@@ -101,14 +102,18 @@ export class WingerXNotificationService {
       this.twentyConfigService.get('WINGERX_EMAIL_FROM_NAME')?.trim() ||
       this.twentyConfigService.get('EMAIL_FROM_NAME');
     const fromAddress = this.getEmailFromAddress();
+    const text = input.message.trim();
+    const html = this.toSafeHtml(text);
+    const content = input.useNeurixaPosTemplate
+      ? await buildNeurixaPosEmailContent(text, html)
+      : { text, html };
 
     await this.emailService.send({
       to: input.to.trim(),
       from: { name: fromName, address: fromAddress },
       replyTo: fromAddress,
       subject: input.subject.trim(),
-      text: input.message.trim(),
-      html: this.toSafeHtml(input.message.trim()),
+      ...content,
     });
 
     const result: NotificationResult = {
