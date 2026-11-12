@@ -26,22 +26,22 @@ export const buildNeurixaPosEmailContent = async (
   return {
     text: `${text}\n\nBook a 30-minute demo: ${DEMO_URL}`,
     html: `
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6f3;font-family:Arial,sans-serif">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef5ff;font-family:Arial,sans-serif">
         <tr><td align="center" style="padding:16px 8px">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;color:#182c25">
-            <tr><td style="background:#203930;color:#ffffff;padding:20px 24px">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;color:#101d35">
+            <tr><td style="background:#10274e;color:#ffffff;padding:20px 24px">
               <strong style="font-size:23px">WingerX</strong><br>
-              <span style="font-size:14px;color:#d8e9d3">by Neurixa Solutions</span>
+              <span style="font-size:14px;color:#cde1ff">by Neurixa Solutions</span>
             </td></tr>
             <tr><td style="padding:24px;font-size:16px;line-height:1.55">
               ${escapedMessage}
               <p style="margin:24px 0 0">
-                <a href="${DEMO_URL}" style="display:inline-block;background:#203930;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Book a 30-minute demo</a>
+                <a href="${DEMO_URL}" style="display:inline-block;background:#0754c6;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Book a 30-minute demo</a>
               </p>
             </td></tr>
             <tr><td style="padding:0 24px 24px">
               <a href="${DEMO_URL}">
-                <img src="cid:${DEMO_CARD_ID}" width="512" style="display:block;width:100%;max-width:512px;height:auto;border:0" alt="WingerX Restaurant POS demo overview">
+                <img src="cid:${DEMO_CARD_ID}" width="512" style="display:block;width:100%;max-width:512px;height:auto;border:0" alt="Evaluate WingerX POS with your own menu">
               </a>
             </td></tr>
           </table>
