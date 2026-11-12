@@ -6,6 +6,7 @@ export const RESTAURANT_EMAIL_SENDS_VIEW_ID = 'ba75fd20-8c0c-4d24-8f35-176d5973b
 const fields = [
   ['name', 230], ['recipientEmail', 250], ['sendStatus', 205],
   ['dispatchDay', 165], ['sentAt', 190], ['providerMessageId', 300],
+  ['pipelineCheckedAt', 190],
 ] as const;
 
 export default defineView({

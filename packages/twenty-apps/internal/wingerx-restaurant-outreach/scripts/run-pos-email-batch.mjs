@@ -11,6 +11,7 @@ import { workspaceClient } from './twenty-rest.mjs';
 
 const PROSPECTS = 'restaurantProspects';
 const SENDS = 'restaurantEmailSends';
+const FOLLOW_UP_DELAY_MS = 3 * 24 * 60 * 60 * 1000;
 const IST_DATE = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Kolkata', dateStyle: 'short' });
 const ASSETS = fileURLToPath(new URL(
   '../../../../twenty-server/src/modules/wingerx/assets/',
@@ -35,6 +36,50 @@ const listAll = async (client, object) => {
 
 const dispatchKey = (email) =>
   createHash('sha256').update('pos-introduction:' + email).digest('hex');
+
+const syncPipeline = async (client, sendRecord, prospect, checkedAt) => {
+  const sentAt = Date.parse(sendRecord.sentAt);
+  if (!Number.isFinite(sentAt)) throw new Error('The send record has no valid acceptance time.');
+
+  if (
+    prospect?.stage === 'READY' &&
+    !prospect.latestReplyAt &&
+    !prospect.emailSuppressed &&
+    Date.parse(prospect.emailPermissionAt ?? '') <= sentAt &&
+    prospect.businessEmail?.trim().toLowerCase() === sendRecord.recipientEmail
+  ) {
+    const updatedAt = Date.parse(prospect.updatedAt);
+    if (!Number.isFinite(updatedAt)) throw new Error('The prospect has no valid update time.');
+
+    const sendDateFilter = JSON.stringify(sendRecord.sentAt);
+    const conditions = [
+      `id[eq]:${prospect.id}`,
+      'stage[eq]:READY',
+      `updatedAt[gte]:${JSON.stringify(new Date(updatedAt).toISOString())}`,
+      `updatedAt[lt]:${JSON.stringify(new Date(updatedAt + 1).toISOString())}`,
+      'latestReplyAt[is]:NULL',
+      'or(emailSuppressed[eq]:false,emailSuppressed[is]:NULL)',
+      `emailPermissionAt[lte]:${sendDateFilter}`,
+    ];
+    const update = { stage: 'CONTACTED', lastPosEmailSentAt: sendRecord.sentAt };
+
+    if (!prospect.nextActionAt || Date.parse(prospect.nextActionAt) <= sentAt) {
+      conditions.push(`or(nextActionAt[is]:NULL,nextActionAt[lte]:${sendDateFilter})`);
+      update.nextActionAt = new Date(sentAt + FOLLOW_UP_DELAY_MS).toISOString();
+    }
+
+    const query = new URLSearchParams({ filter: `and(${conditions.join(',')})`, depth: '0' });
+    const response = await client.request('PATCH', `${PROSPECTS}?${query}`, update);
+    if (response.data?.updateRestaurantProspects?.[0]?.id !== prospect.id) {
+      return false;
+    }
+  }
+
+  await client.request('PATCH', `${SENDS}/${sendRecord.id}`, {
+    pipelineCheckedAt: checkedAt.toISOString(),
+  });
+  return true;
+};
 
 export const runPosEmailBatch = async ({
   client, send, dryRun = true, onlyEmail, now = () => new Date(),
@@ -61,19 +106,36 @@ export const runPosEmailBatch = async ({
     reservedToday: today.length,
     now: started,
   });
-  const result = { dispatchDay, eligible: batch.length, reservedToday: today.length, sent: 0, skipped: 0, needsReview: 0, dryRun };
-  if (dryRun || batch.length === 0) return result;
+  const result = { dispatchDay, eligible: batch.length, reservedToday: today.length, sent: 0, skipped: 0, needsReview: 0, pipelinePending: 0, dryRun };
+  if (dryRun) return result;
+
+  const reconcilePipeline = async (sendRecord, prospect) => {
+    try {
+      if (await syncPipeline(client, sendRecord, prospect, now())) return;
+    } catch {
+      // SMTP acceptance is already saved. Retry only the pipeline update.
+    }
+    result.pipelinePending += 1;
+  };
+
+  const prospectsById = new Map(prospects.map((prospect) => [prospect.id, prospect]));
+  for (const record of sends) {
+    if (record.sendStatus === 'SENT' && !record.pipelineCheckedAt &&
+      (!onlyEmail || record.recipientEmail === onlyEmail)) {
+      await reconcilePipeline(record, prospectsById.get(record.prospectReference));
+    }
+  }
+  if (batch.length === 0) return result;
   if (!send) throw new Error('SMTP sender is required in send mode.');
 
   const availableSlots = Array.from({ length: DAILY_EMAIL_LIMIT }, (_, index) => `${dispatchDay}/${index + 1}`)
     .filter((slot) => !usedSlots.has(slot));
-  const names = new Map(prospects.map((prospect) => [prospect.id, prospect.name]));
 
   for (const [index, item] of batch.entries()) {
     if (IST_DATE.format(now()) !== dispatchDay) break;
     const key = dispatchKey(item.email);
     const reservation = await client.request('POST', SENDS, {
-      name: names.get(item.id)?.trim() || 'Restaurant',
+      name: prospectsById.get(item.id)?.name?.trim() || 'Restaurant',
       recipientEmail: item.email,
       prospectReference: item.id,
       dispatchKey: key,
@@ -112,12 +174,14 @@ export const runPosEmailBatch = async ({
       break;
     }
 
+    const sentAt = now().toISOString();
     await client.request('PATCH', path, {
       sendStatus: 'SENT',
       providerMessageId: messageId,
-      sentAt: now().toISOString(),
+      sentAt,
     });
     result.sent += 1;
+    await reconcilePipeline({ id, recipientEmail: item.email, sentAt }, latest);
   }
 
   return result;
@@ -182,7 +246,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const send = dryRun ? undefined : await createSmtpSender();
     const result = await runPosEmailBatch({ client: workspaceClient(), send, dryRun, onlyEmail });
     console.log(JSON.stringify(result));
-    if (result.needsReview) process.exitCode = 1;
+    if (result.needsReview || result.pipelinePending) process.exitCode = 1;
   } catch (error) {
     console.error(error instanceof Error ? error.message : 'POS outreach batch failed.');
     process.exitCode = 1;

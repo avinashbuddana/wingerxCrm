@@ -11,10 +11,11 @@ const ready = (id, overrides = {}) => ({
   stage: 'READY',
   emailPermissionAt: '2026-11-01T00:00:00Z',
   nextActionAt: '2026-11-12T00:00:00Z',
+  updatedAt: '2026-11-12T00:00:00.000Z',
   ...overrides,
 });
 
-const mockTwenty = (prospects, latest = (record) => record) => {
+const mockTwenty = (prospects, latest = (record) => record, beforePipelineUpdate = () => {}) => {
   const sends = [];
   const client = {
     async listPage(object, query) {
@@ -37,6 +38,24 @@ const mockTwenty = (prospects, latest = (record) => record) => {
       if (method === 'GET') {
         return { data: { restaurantProspect: latest(prospects.find((record) => record.id === id)) } };
       }
+      if (path.startsWith('restaurantProspects?')) {
+        const filter = new URLSearchParams(path.split('?')[1]).get('filter');
+        const prospectId = filter.match(/id\[eq\]:([^,]+)/)[1];
+        const prospect = prospects.find((record) => record.id === prospectId);
+        const acceptedAt = sends.find((record) => record.prospectReference === prospectId).sentAt;
+        assert.ok(filter.includes('stage[eq]:READY'));
+        assert.ok(filter.includes('latestReplyAt[is]:NULL'));
+        assert.ok(filter.includes('emailSuppressed[eq]:false'));
+        assert.ok(filter.includes(`updatedAt[gte]:${JSON.stringify(prospect.updatedAt)}`));
+        const expectedUpdateTime = prospect.updatedAt;
+        beforePipelineUpdate();
+        const mayUpdate = prospect.updatedAt === expectedUpdateTime &&
+          prospect.stage === 'READY' && !prospect.latestReplyAt &&
+          !prospect.emailSuppressed && Date.parse(prospect.emailPermissionAt ?? '') <= Date.parse(acceptedAt) &&
+          (!body.nextActionAt || !prospect.nextActionAt || Date.parse(prospect.nextActionAt) <= Date.parse(acceptedAt));
+        if (mayUpdate) Object.assign(prospect, body);
+        return { data: { updateRestaurantProspects: mayUpdate ? [{ id: prospect.id }] : [] } };
+      }
       Object.assign(sends.find((record) => record.id === id), body);
       return {};
     },
@@ -53,7 +72,7 @@ test('reserves no more than 100 sends per IST day across pages and reruns', asyn
   assert.equal((await runPosEmailBatch({ client, send, now })).eligible, 100);
   assert.equal(sends.length, 0);
   assert.equal((await runPosEmailBatch({ client, send, now, dryRun: false })).sent, 100);
-  assert.ok(sends.every((record) => record.dispatchDay === '2026-11-13' && record.sendStatus === 'SENT'));
+  assert.ok(sends.every((record) => record.dispatchDay === '2026-11-13' && record.sendStatus === 'SENT' && record.pipelineCheckedAt));
   assert.equal((await runPosEmailBatch({ client, send, now, dryRun: false })).sent, 0);
   const tomorrow = () => new Date('2026-11-13T20:00:00Z');
   assert.equal((await runPosEmailBatch({ client, now: tomorrow })).eligible, 3);
@@ -99,4 +118,52 @@ test('limits a pilot to the specified approved address', async () => {
     client, send, now, dryRun: false, onlyEmail: 'restaurant2@example.com',
   });
   assert.deepEqual(recipients, ['restaurant2@example.com']);
+});
+
+test('moves a sent restaurant to Contacted and schedules the next action three days later', async () => {
+  const prospect = ready(1);
+  const { client } = mockTwenty([prospect]);
+  await runPosEmailBatch({ client, send: async () => '<accepted@example.com>', now, dryRun: false });
+  assert.equal(prospect.stage, 'CONTACTED');
+  assert.equal(prospect.lastPosEmailSentAt, now().toISOString());
+  assert.equal(prospect.nextActionAt, '2026-11-15T20:00:00.000Z');
+});
+
+test('keeps an intervening reply stage and retries only a pending pipeline check', async () => {
+  const prospect = ready(1);
+  const { client, sends } = mockTwenty([prospect], undefined, () => {
+    prospect.stage = 'REPLIED';
+    prospect.latestReplyAt = now().toISOString();
+  });
+  const send = async () => '<accepted@example.com>';
+  const first = await runPosEmailBatch({ client, send, now, dryRun: false });
+  assert.equal(first.sent, 1);
+  assert.equal(first.pipelinePending, 1);
+  assert.equal(prospect.stage, 'REPLIED');
+  assert.equal(sends[0].pipelineCheckedAt, undefined);
+  const second = await runPosEmailBatch({ client, now, dryRun: false });
+  assert.equal(second.sent, 0);
+  assert.equal(second.pipelinePending, 0);
+  assert.equal(sends[0].sendStatus, 'SENT');
+  assert.equal(sends[0].pipelineCheckedAt, now().toISOString());
+  assert.equal(prospect.stage, 'REPLIED');
+});
+
+test('reconciles an accepted send without replacing a newer follow-up date or resending', async () => {
+  const prospect = ready(1);
+  const { client, sends } = mockTwenty([prospect], undefined, () => {
+    if (prospect.nextActionAt === '2026-11-12T00:00:00Z') {
+      prospect.nextActionAt = '2026-11-20T04:30:00Z';
+    }
+  });
+  const first = await runPosEmailBatch({
+    client, send: async () => '<accepted@example.com>', now, dryRun: false,
+  });
+  assert.equal(first.pipelinePending, 1);
+  const second = await runPosEmailBatch({ client, now, dryRun: false });
+  assert.equal(second.sent, 0);
+  assert.equal(second.pipelinePending, 0);
+  assert.equal(prospect.stage, 'CONTACTED');
+  assert.equal(prospect.nextActionAt, '2026-11-20T04:30:00Z');
+  assert.equal(sends.length, 1);
 });

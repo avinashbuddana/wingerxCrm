@@ -10,6 +10,7 @@ export const RESTAURANT_PIPELINE_VIEW_ID = '82dfb03a-bf10-4607-985c-39e9c80eac00
 
 const PIPELINE_FIELDS = [
   ['name', 240], ['market', 150], ['posStatus', 150], ['nextActionAt', 150],
+  ['lastPosEmailSentAt', 160],
 ] as const;
 
 export default defineView({

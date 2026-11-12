@@ -11,6 +11,7 @@ export const RESTAURANT_EMAIL_SEND_FIELDS = {
   sendStatus: 'ba75fd20-8c0c-4d24-8f35-176d5973b107',
   providerMessageId: 'ba75fd20-8c0c-4d24-8f35-176d5973b108',
   sentAt: 'ba75fd20-8c0c-4d24-8f35-176d5973b109',
+  pipelineCheckedAt: 'ba75fd20-8c0c-4d24-8f35-176d5973b110',
 };
 
 const textFields = [
@@ -57,6 +58,14 @@ export default defineObject({
       label: 'Sent at',
       type: FieldType.DATE_TIME,
       universalIdentifier: RESTAURANT_EMAIL_SEND_FIELDS.sentAt,
+      isNullable: true,
+      defaultValue: null,
+    },
+    {
+      name: 'pipelineCheckedAt',
+      label: 'Pipeline checked at',
+      type: FieldType.DATE_TIME,
+      universalIdentifier: RESTAURANT_EMAIL_SEND_FIELDS.pipelineCheckedAt,
       isNullable: true,
       defaultValue: null,
     },

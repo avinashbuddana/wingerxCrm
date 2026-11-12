@@ -37,7 +37,7 @@ The planner selects due, eligible emails up to the remaining daily capacity. The
 
 ## Schedule POS introductions
 
-1. Deploy the CRM image from this revision and apply the Twenty app metadata. Confirm **Restaurant Outreach → Email Sends** appears. The runner needs a Twenty API key with read access to Restaurant prospects and create, read and update access to Restaurant email sends.
+1. Deploy the CRM image from this revision and apply the Twenty app metadata. Confirm **Restaurant Outreach → Email Sends** appears. The runner needs a Twenty API key with read and update access to Restaurant prospects and create, read and update access to Restaurant email sends.
 2. On the VM, use a dedicated sender account with Node 24 and a checkout that includes this app, `packages/twenty-front/src/modules/wingerx/utils`, and `packages/twenty-server/src/modules/wingerx`. Run `yarn install --immutable` in this app.
 3. Store `TWENTY_WORKSPACE_URL`, `TWENTY_API_KEY`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_SMTP_USER`, `EMAIL_SMTP_PASSWORD`, and `WINGERX_EMAIL_FROM_ADDRESS` in the sender account's restricted environment. Use the same authenticated SMTP sender as the CRM. Keep these credentials outside the reply-draft worker account.
 4. Run `yarn email:batch` for a read-only dry run. A prospect qualifies when it has an email permission timestamp, is Ready for outreach, and its next action is due. Imported prospect rows do not acquire email permission on import. For a pilot, use a qualifying internal prospect and run `yarn email:batch --send --only=your-internal-address@example.com`.
@@ -51,6 +51,8 @@ systemctl list-timers wingerx-pos-email.timer
 ```
 
 The audit table shows the recipient, reservation, status and SMTP message ID. **Sent** means the SMTP provider accepted the message. Check the provider's delivery logs for mailbox delivery or bounce events. The runner sends one introduction per normalized address and includes an unsubscribe link to the sender mailbox. Record opt-out requests as **Suppress email** in Twenty. Review reserved or ambiguous sends in the provider logs before considering a manual retry.
+
+After SMTP acceptance, the Sales Pipeline card moves from **Ready for outreach** to **Contacted**, shows **POS email sent at**, and sets **Next action** three calendar days after the send if no later action is scheduled. The date is a reminder for the operator. Reply, booking and opt-out stages remain controlled by their own signals. If the pipeline update fails, the next run reconciles it using the saved send record.
 
 ## Production integration
 
