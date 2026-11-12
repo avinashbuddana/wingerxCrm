@@ -1,0 +1,13 @@
+[Unit]
+Description=Send eligible WingerX restaurant POS introductions
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=wingerx-sends
+WorkingDirectory=/opt/wingerx/pos-outreach/packages/twenty-apps/internal/wingerx-restaurant-outreach
+EnvironmentFile=/etc/wingerx/pos-email.env
+RuntimeDirectory=wingerx-pos-email
+ExecStart=/usr/bin/flock -n /run/wingerx-pos-email/batch.lock /usr/bin/env node scripts/run-pos-email-batch.mjs --send
+TimeoutStartSec=2h

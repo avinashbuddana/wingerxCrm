@@ -2,7 +2,10 @@ import { useMemo } from 'react';
 
 import { useObjectMetadataItems } from '@/object-metadata/hooks/useObjectMetadataItems';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
-import { type RecordGqlOperationGqlRecordFields } from 'twenty-shared/types';
+import {
+  type RecordGqlOperationFilter,
+  type RecordGqlOperationGqlRecordFields,
+} from 'twenty-shared/types';
 
 import {
   normalizeWingerXKey,
@@ -19,11 +22,15 @@ export const useWingerXObjectRecords = ({
   fields,
   fallbackObjectName = 'person',
   limit = 500,
+  filter,
+  skip = false,
 }: {
   candidate: WingerXObjectCandidate;
   fields: string[];
   fallbackObjectName?: string;
   limit?: number;
+  filter?: RecordGqlOperationFilter;
+  skip?: boolean;
 }) => {
   const { objectMetadataItems } = useObjectMetadataItems();
 
@@ -67,7 +74,8 @@ export const useWingerXObjectRecords = ({
     objectNameSingular: objectMetadataItem?.nameSingular ?? fallbackObjectName,
     recordGqlFields,
     limit,
-    skip: !objectMetadataItem,
+    filter,
+    skip: skip || !objectMetadataItem,
     fetchPolicy: 'cache-and-network',
   });
 

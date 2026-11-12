@@ -1215,7 +1215,7 @@ const TechView = ({ data }: { data: ReturnType<typeof useWingerXData> }) => {
 };
 
 const getClientEmail = (record: WingerXRecord) => {
-  for (const key of ['email', 'workEmail', 'primaryEmail']) {
+  for (const key of ['businessEmail', 'email', 'workEmail', 'primaryEmail']) {
     const value = record[key];
     if (typeof value === 'string' && value.includes('@')) return value;
   }
@@ -1233,7 +1233,7 @@ const getClientEmail = (record: WingerXRecord) => {
 };
 
 const getClientPhone = (record: WingerXRecord) => {
-  for (const key of ['phone', 'phoneNumber', 'mobilePhone']) {
+  for (const key of ['businessPhone', 'phone', 'phoneNumber', 'mobilePhone']) {
     const value = record[key];
     if (typeof value === 'string' && value.trim().length > 0) return value;
   }
@@ -1264,6 +1264,19 @@ type DeliveryHistoryItem = {
 const DEFAULT_OUTREACH_MESSAGE =
   'Thank you for speaking with us. We are following up with the next steps and will be happy to answer any questions.';
 
+const RESTAURANT_RECIPIENT_OBJECT = {
+  names: ['restaurantProspect', 'restaurantProspects'],
+};
+const RESTAURANT_RECIPIENT_FIELDS = ['name', 'market', 'businessEmail', 'businessPhone'];
+const RESTAURANT_EMAIL_SEND_OBJECT = {
+  names: ['restaurantEmailSend', 'restaurantEmailSends'],
+};
+const RESTAURANT_EMAIL_SEND_FIELDS = ['sendStatus'];
+const OUTREACH_BUSINESS_DATE = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Kolkata',
+  dateStyle: 'short',
+});
+
 const OutreachView = ({
   data,
 }: {
@@ -1287,7 +1300,33 @@ const OutreachView = ({
     );
   }, [data.leads.records, data.people.records]);
 
-  const [selectedContactId, setSelectedContactId] = useState('');
+  const [recipientSource, setRecipientSource] = useState('restaurants');
+  const [restaurantSearch, setRestaurantSearch] = useState('');
+  const [selectedContact, setSelectedContact] = useState<WingerXRecord>();
+  const restaurantQuery = restaurantSearch.trim();
+  const restaurants = useWingerXObjectRecords({
+    candidate: RESTAURANT_RECIPIENT_OBJECT,
+    fields: RESTAURANT_RECIPIENT_FIELDS,
+    limit: 50,
+    skip: recipientSource !== 'restaurants',
+    filter: restaurantQuery
+      ? { name: { ilike: `%${restaurantQuery}%` } }
+      : undefined,
+  });
+  const recipients =
+    recipientSource === 'restaurants' ? restaurants.records : contacts;
+  const scheduledSends = useWingerXObjectRecords({
+    candidate: RESTAURANT_EMAIL_SEND_OBJECT,
+    fields: RESTAURANT_EMAIL_SEND_FIELDS,
+    limit: 100,
+    filter: { dispatchDay: { eq: OUTREACH_BUSINESS_DATE.format(new Date()) } },
+  });
+  const sentToday = scheduledSends.records.filter(
+    (record) => record.sendStatus === 'SENT',
+  ).length;
+  const needsReview = scheduledSends.records.filter(
+    (record) => record.sendStatus === 'REVIEW' || record.sendStatus === 'RESERVED',
+  ).length;
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [subject, setSubject] = useState('WingerX follow-up');
@@ -1301,25 +1340,16 @@ const OutreachView = ({
   const [consentConfirmed, setConsentConfirmed] = useState(false);
   const [history, setHistory] = useState<DeliveryHistoryItem[]>([]);
 
-  const selectedContact = contacts.find(
-    (record) => record.id === selectedContactId,
-  );
   const clientName = selectedContact
     ? getWingerXRecordName(selectedContact)
     : 'Client';
 
-  useEffect(() => {
-    if (selectedContactId.length === 0 && contacts[0]) {
-      setSelectedContactId(contacts[0].id);
-    }
-  }, [contacts, selectedContactId]);
-
-  useEffect(() => {
-    if (!selectedContact) return;
-    setEmail(getClientEmail(selectedContact));
-    setPhone(getClientPhone(selectedContact));
+  const selectRecipient = (record?: WingerXRecord) => {
+    setSelectedContact(record);
+    setEmail(record ? getClientEmail(record) : '');
+    setPhone(record ? getClientPhone(record) : '');
     setConsentConfirmed(false);
-  }, [selectedContact]);
+  };
 
   useEffect(() => {
     if (!configuration) return;
@@ -1413,6 +1443,37 @@ const OutreachView = ({
 
   return (
     <StyledGrid>
+      {scheduledSends.isDetected ? (
+        <StyledWidePanel>
+          <StyledPanelHeader>
+            <StyledPanelTitle>Scheduled POS email today</StyledPanelTitle>
+            <StyledHeaderActions>
+              <StyledBadge>India time</StyledBadge>
+              <StyledButton
+                type="button"
+                disabled={scheduledSends.loading}
+                onClick={() => {
+                  void scheduledSends.refetch().catch(() => undefined);
+                }}
+              >
+                Refresh
+              </StyledButton>
+            </StyledHeaderActions>
+          </StyledPanelHeader>
+          {scheduledSends.loading ? (
+            <StyledRuleText>Loading email sends…</StyledRuleText>
+          ) : scheduledSends.error ? (
+            <StyledRuleText>Email send history is unavailable.</StyledRuleText>
+          ) : (
+            <StyledChips>
+              <StyledChip>{sentToday} sent to the mail provider</StyledChip>
+              <StyledChip>{scheduledSends.records.length} of 100 slots used</StyledChip>
+              <StyledChip>{needsReview} pending or needing review</StyledChip>
+            </StyledChips>
+          )}
+          <StyledRuleText>Open Restaurant Outreach → Email Sends for individual recipients and message IDs.</StyledRuleText>
+        </StyledWidePanel>
+      ) : null}
       <StyledWidePanel>
         <StyledPanelHeader>
           <div>
@@ -1446,29 +1507,65 @@ const OutreachView = ({
 
         <StyledFormGrid>
           <StyledFullField>
-            Client
+            Recipient source
             <StyledSelect
-              value={selectedContactId}
-              onChange={(event) => setSelectedContactId(event.target.value)}
+              value={recipientSource}
+              onChange={(event) => {
+                setRecipientSource(event.target.value);
+                selectRecipient();
+              }}
             >
-              {contacts.length === 0 ? (
-                <option value="">No People or Leads found</option>
-              ) : null}
-              {contacts.map((record) => (
+              <option value="restaurants">Restaurant prospects</option>
+              <option value="clients">People and Leads</option>
+            </StyledSelect>
+          </StyledFullField>
+          {recipientSource === 'restaurants' ? (
+            <StyledFullField>
+              Find a restaurant
+              <StyledInput
+                placeholder="Search by restaurant name"
+                value={restaurantSearch}
+                onChange={(event) => {
+                  setRestaurantSearch(event.target.value);
+                  selectRecipient();
+                }}
+              />
+            </StyledFullField>
+          ) : null}
+          <StyledFullField>
+            Recipient
+            <StyledSelect
+              value={selectedContact?.id ?? ''}
+              onChange={(event) =>
+                selectRecipient(
+                  recipients.find((record) => record.id === event.target.value),
+                )
+              }
+            >
+              <option value="">
+                {recipients.length > 0 ? 'Select a recipient' : 'No matching recipients'}
+              </option>
+              {recipients.map((record) => (
                 <option key={record.id} value={record.id}>
                   {getWingerXRecordName(record)}
+                  {typeof record.market === 'string' && record.market
+                    ? ` · ${record.market}`
+                    : ''}
                 </option>
               ))}
             </StyledSelect>
           </StyledFullField>
 
           <StyledFullField>
-            Client email
+            Recipient email
             <StyledInput
               type="email"
               placeholder="client@example.com"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setConsentConfirmed(false);
+              }}
             />
           </StyledFullField>
           <StyledHeaderActions>

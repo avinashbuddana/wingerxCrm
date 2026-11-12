@@ -13,7 +13,10 @@ import { EmailService } from 'src/engine/core-modules/email/email.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { SendWingerXEmailDto } from 'src/modules/wingerx/dtos/send-wingerx-email.dto';
 import { SendWingerXWhatsAppDto } from 'src/modules/wingerx/dtos/send-wingerx-whatsapp.dto';
-import { buildNeurixaPosEmailContent } from 'src/modules/wingerx/utils/build-neurixa-pos-email-content';
+import {
+  buildNeurixaPosEmailContent,
+  escapeWingerXEmailMessage,
+} from 'src/modules/wingerx/utils/build-neurixa-pos-email-content';
 
 type NotificationResult = {
   channel: 'email' | 'whatsapp';
@@ -103,7 +106,7 @@ export class WingerXNotificationService {
       this.twentyConfigService.get('EMAIL_FROM_NAME');
     const fromAddress = this.getEmailFromAddress();
     const text = input.message.trim();
-    const html = this.toSafeHtml(text);
+    const html = escapeWingerXEmailMessage(text);
     const content = input.useNeurixaPosTemplate
       ? await buildNeurixaPosEmailContent(text, html)
       : { text, html };
@@ -318,13 +321,4 @@ export class WingerXNotificationService {
     return response;
   }
 
-  private toSafeHtml(message: string) {
-    return message
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;')
-      .replace(/\n/g, '<br />');
-  }
 }
