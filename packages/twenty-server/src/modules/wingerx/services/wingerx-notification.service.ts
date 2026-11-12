@@ -46,7 +46,7 @@ export class WingerXNotificationService {
   getConfiguration() {
     const emailDriver = this.twentyConfigService.get('EMAIL_DRIVER');
     const emailHost = this.twentyConfigService.get('EMAIL_SMTP_HOST');
-    const emailFromAddress = this.twentyConfigService.get('EMAIL_FROM_ADDRESS');
+    const emailFromAddress = this.getEmailFromAddress();
     const whatsappAccessToken = this.twentyConfigService.get(
       'META_WHATSAPP_ACCESS_TOKEN',
     );
@@ -97,12 +97,15 @@ export class WingerXNotificationService {
       );
     }
 
-    const fromName = this.twentyConfigService.get('EMAIL_FROM_NAME');
-    const fromAddress = this.twentyConfigService.get('EMAIL_FROM_ADDRESS');
+    const fromName =
+      this.twentyConfigService.get('WINGERX_EMAIL_FROM_NAME')?.trim() ||
+      this.twentyConfigService.get('EMAIL_FROM_NAME');
+    const fromAddress = this.getEmailFromAddress();
 
     await this.emailService.send({
       to: input.to.trim(),
-      from: `${fromName} <${fromAddress}>`,
+      from: { name: fromName, address: fromAddress },
+      replyTo: fromAddress,
       subject: input.subject.trim(),
       text: input.message.trim(),
       html: this.toSafeHtml(input.message.trim()),
@@ -201,6 +204,13 @@ export class WingerXNotificationService {
     );
 
     return result;
+  }
+
+  private getEmailFromAddress() {
+    return (
+      this.twentyConfigService.get('WINGERX_EMAIL_FROM_ADDRESS')?.trim() ||
+      this.twentyConfigService.get('EMAIL_FROM_ADDRESS')
+    );
   }
 
   private assertConsent(consentConfirmed: boolean) {

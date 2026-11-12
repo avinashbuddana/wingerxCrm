@@ -13,6 +13,7 @@ import {
 } from '@/wingerx/hooks/useWingerXAutomation';
 import { useWingerXNotifications } from '@/wingerx/hooks/useWingerXNotifications';
 import { useWingerXObjectRecords } from '@/wingerx/hooks/useWingerXObjectRecords';
+import { buildNeurixaPosEmail } from '@/wingerx/utils/buildNeurixaPosEmail';
 import {
   computeWingerXSalesMetrics,
   computeWingerXTechMetrics,
@@ -1260,6 +1261,9 @@ type DeliveryHistoryItem = {
   sentAt: Date;
 };
 
+const DEFAULT_OUTREACH_MESSAGE =
+  'Thank you for speaking with us. We are following up with the next steps and will be happy to answer any questions.';
+
 const OutreachView = ({
   data,
 }: {
@@ -1287,8 +1291,9 @@ const OutreachView = ({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [subject, setSubject] = useState('WingerX follow-up');
-  const [message, setMessage] = useState(
-    'Thank you for speaking with us. We are following up with the next steps and will be happy to answer any questions.',
+  const [emailMessage, setEmailMessage] = useState(DEFAULT_OUTREACH_MESSAGE);
+  const [whatsAppMessage, setWhatsAppMessage] = useState(
+    DEFAULT_OUTREACH_MESSAGE,
   );
   const [templateName, setTemplateName] = useState('client_follow_up');
   const [languageCode, setLanguageCode] = useState('en_US');
@@ -1340,12 +1345,25 @@ const OutreachView = ({
     );
   };
 
+  const handleUseNeurixaPosTemplate = () => {
+    const contactEmail = selectedContact && getClientEmail(selectedContact);
+    const matchesContact =
+      contactEmail &&
+      contactEmail.trim().toLowerCase() === email.trim().toLowerCase();
+    const draft = buildNeurixaPosEmail(
+      matchesContact && clientName !== 'Untitled' ? clientName : undefined,
+    );
+
+    setSubject(draft.subject);
+    setEmailMessage(draft.message);
+  };
+
   const handleEmail = async () => {
     try {
       const result = await sendEmail({
         to: email,
         subject,
-        message,
+        message: emailMessage,
         consentConfirmed,
         clientName,
         clientReference: selectedContact?.id,
@@ -1365,7 +1383,7 @@ const OutreachView = ({
         to: phone,
         templateName,
         languageCode,
-        variables: [clientName, message],
+        variables: [clientName, whatsAppMessage],
         consentConfirmed,
         clientName,
         clientReference: selectedContact?.id,
@@ -1441,7 +1459,7 @@ const OutreachView = ({
             </StyledSelect>
           </StyledFullField>
 
-          <StyledField>
+          <StyledFullField>
             Client email
             <StyledInput
               type="email"
@@ -1449,8 +1467,27 @@ const OutreachView = ({
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
-          </StyledField>
-          <StyledField>
+          </StyledFullField>
+          <StyledHeaderActions>
+            <StyledButton type="button" onClick={handleUseNeurixaPosTemplate}>
+              Use Neurixa POS template
+            </StyledButton>
+          </StyledHeaderActions>
+          <StyledFullField>
+            Email subject
+            <StyledInput
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+            />
+          </StyledFullField>
+          <StyledFullField>
+            Email message
+            <StyledTextArea
+              value={emailMessage}
+              onChange={(event) => setEmailMessage(event.target.value)}
+            />
+          </StyledFullField>
+          <StyledFullField>
             WhatsApp number (E.164)
             <StyledInput
               type="tel"
@@ -1458,14 +1495,7 @@ const OutreachView = ({
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />
-          </StyledField>
-          <StyledField>
-            Email subject
-            <StyledInput
-              value={subject}
-              onChange={(event) => setSubject(event.target.value)}
-            />
-          </StyledField>
+          </StyledFullField>
           <StyledField>
             Approved WhatsApp template
             <StyledInput
@@ -1481,10 +1511,10 @@ const OutreachView = ({
             />
           </StyledField>
           <StyledFullField>
-            Client message
+            WhatsApp message
             <StyledTextArea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
+              value={whatsAppMessage}
+              onChange={(event) => setWhatsAppMessage(event.target.value)}
             />
           </StyledFullField>
         </StyledFormGrid>
