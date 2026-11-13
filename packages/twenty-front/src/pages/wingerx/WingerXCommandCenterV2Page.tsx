@@ -252,10 +252,9 @@ const StyledListRow = styled.div`
   border-bottom: 1px solid ${themeCssVariables.border.color.light};
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(130px, 2fr) minmax(80px, 1fr) minmax(
-      70px,
-      1fr
-    ) minmax(70px, 1fr);
+  grid-template-columns:
+    minmax(130px, 2fr) minmax(80px, 1fr) minmax(70px, 1fr)
+    minmax(70px, 1fr);
   min-height: 39px;
   padding: 0 3px;
 
@@ -1267,7 +1266,12 @@ const DEFAULT_OUTREACH_MESSAGE =
 const RESTAURANT_RECIPIENT_OBJECT = {
   names: ['restaurantProspect', 'restaurantProspects'],
 };
-const RESTAURANT_RECIPIENT_FIELDS = ['name', 'market', 'businessEmail', 'businessPhone'];
+const RESTAURANT_RECIPIENT_FIELDS = [
+  'name',
+  'market',
+  'businessEmail',
+  'businessPhone',
+];
 const RESTAURANT_EMAIL_SEND_OBJECT = {
   names: ['restaurantEmailSend', 'restaurantEmailSends'],
 };
@@ -1325,7 +1329,8 @@ const OutreachView = ({
     (record) => record.sendStatus === 'SENT',
   ).length;
   const needsReview = scheduledSends.records.filter(
-    (record) => record.sendStatus === 'REVIEW' || record.sendStatus === 'RESERVED',
+    (record) =>
+      record.sendStatus === 'REVIEW' || record.sendStatus === 'RESERVED',
   ).length;
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -1467,11 +1472,16 @@ const OutreachView = ({
           ) : (
             <StyledChips>
               <StyledChip>{sentToday} sent to the mail provider</StyledChip>
-              <StyledChip>{scheduledSends.records.length} of 100 slots used</StyledChip>
+              <StyledChip>
+                {scheduledSends.records.length} of 100 slots used
+              </StyledChip>
               <StyledChip>{needsReview} pending or needing review</StyledChip>
             </StyledChips>
           )}
-          <StyledRuleText>Open Restaurant Outreach → Email Sends for individual recipients and message IDs.</StyledRuleText>
+          <StyledRuleText>
+            Open Restaurant Outreach → Email Sends for individual recipients and
+            message IDs.
+          </StyledRuleText>
         </StyledWidePanel>
       ) : null}
       <StyledWidePanel>
@@ -1543,7 +1553,9 @@ const OutreachView = ({
               }
             >
               <option value="">
-                {recipients.length > 0 ? 'Select a recipient' : 'No matching recipients'}
+                {recipients.length > 0
+                  ? 'Select a recipient'
+                  : 'No matching recipients'}
               </option>
               {recipients.map((record) => (
                 <option key={record.id} value={record.id}>

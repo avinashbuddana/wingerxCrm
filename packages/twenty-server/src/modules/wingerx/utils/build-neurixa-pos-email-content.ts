@@ -21,7 +21,14 @@ export const buildNeurixaPosEmailContent = async (
   text: string,
   escapedMessage: string,
   {
-    assets = join(process.cwd(), 'dist', 'assets', 'modules', 'wingerx', 'assets'),
+    assets = join(
+      process.cwd(),
+      'dist',
+      'assets',
+      'modules',
+      'wingerx',
+      'assets',
+    ),
     unsubscribeUrl,
   }: { assets?: string; unsubscribeUrl?: string } = {},
 ) => {

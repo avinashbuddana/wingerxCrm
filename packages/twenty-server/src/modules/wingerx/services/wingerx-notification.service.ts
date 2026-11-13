@@ -320,5 +320,4 @@ export class WingerXNotificationService {
 
     return response;
   }
-
 }
