@@ -127,7 +127,17 @@ test('limits a pilot to the specified approved address', async () => {
     return '<accepted@example.com>';
   };
   await runPosEmailBatch({
-    client, send, now, dryRun: false, onlyEmail: 'restaurant2@example.com',
+    client: {
+      ...client,
+      listPage(object, query) {
+        assert.equal(query.limit, '200');
+        assert.equal(query.filter, object === 'restaurantProspects'
+          ? 'businessEmail[ilike]:"%restaurant2@example.com%"'
+          : 'or(dispatchDay[eq]:2026-11-13,recipientEmail[ilike]:"restaurant2@example.com")');
+        return client.listPage(object, query);
+      },
+    },
+    send, now, dryRun: false, onlyEmail: 'restaurant2@example.com',
   });
   assert.deepEqual(recipients, ['restaurant2@example.com']);
 });

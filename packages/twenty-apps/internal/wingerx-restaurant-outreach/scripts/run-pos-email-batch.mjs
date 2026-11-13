@@ -18,13 +18,17 @@ const ASSETS = fileURLToPath(new URL(
   import.meta.url,
 ));
 
-const listAll = async (client, object) => {
+const listAll = async (client, object, query) => {
   const result = [];
   const seenCursors = new Set();
   let cursor;
 
   do {
-    const page = await client.listPage(object, cursor ? { starting_after: cursor } : {});
+    const page = await client.listPage(object, {
+      limit: '200',
+      ...query,
+      ...(cursor ? { starting_after: cursor } : {}),
+    });
     result.push(...page.records);
     cursor = page.next;
     if (cursor && seenCursors.has(cursor)) throw new Error('Twenty returned a repeated pagination cursor.');
@@ -89,9 +93,17 @@ export const runPosEmailBatch = async ({
   }
   const started = now();
   const dispatchDay = IST_DATE.format(started);
+  // Fall back to the complete scan for addresses with REST filter syntax characters.
+  const canFilter = /^[a-z0-9.+_-]+@[a-z0-9.-]+$/i.test(onlyEmail ?? '');
+  const prospectQuery = canFilter
+    ? { filter: `businessEmail[ilike]:"%${onlyEmail}%"` }
+    : undefined;
+  const sendQuery = canFilter
+    ? { filter: `or(dispatchDay[eq]:${dispatchDay},recipientEmail[ilike]:"${onlyEmail}")` }
+    : undefined;
   const [prospects, sends] = await Promise.all([
-    listAll(client, PROSPECTS),
-    listAll(client, SENDS),
+    listAll(client, PROSPECTS, prospectQuery),
+    listAll(client, SENDS, sendQuery),
   ]);
   const today = sends.filter((record) => record.dispatchDay === dispatchDay);
   const keys = new Set(sends.map((record) => record.dispatchKey));
