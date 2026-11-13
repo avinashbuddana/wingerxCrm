@@ -21,6 +21,7 @@ export const RESTAURANT_FIELDS = {
   emailSuppressed: '82dfb03a-bf10-4607-985c-39e9c80eaf25',
   whatsappSuppressed: '82dfb03a-bf10-4607-985c-39e9c80eaf26',
   posStatus: '82dfb03a-bf10-4607-985c-39e9c80eaf27',
+  lastPosEmailSentAt: 'ba75fd20-8c0c-4d24-8f35-176d5973b160',
 };
 
 export const RESTAURANT_STAGES = [
@@ -51,6 +52,7 @@ const dateFields = [
   ['whatsappPermissionAt', 'WhatsApp permission recorded at', 'IconMessage'],
   ['nextActionAt', 'Next action at', 'IconCalendar'],
   ['latestReplyAt', 'Latest reply at', 'IconMessage'],
+  ['lastPosEmailSentAt', 'POS email sent at', 'IconMail'],
 ] as const;
 
 const suppressionFields = [

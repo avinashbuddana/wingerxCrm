@@ -1544,6 +1544,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nodemailer@npm:9.0.1":
+  version: 9.0.1
+  resolution: "nodemailer@npm:9.0.1"
+  checksum: 10c0/4213f01aa211127c1ce33243c5e45e7f831601a933d03fa864cd827b1bd5ea2782cb4b43722bee7028cbc193733d9802dad1120fe67181448eb0b7de52218a37
+  languageName: node
+  linkType: hard
+
 "onetime@npm:^5.1.0":
   version: 5.1.2
   resolution: "onetime@npm:5.1.2"
@@ -2075,6 +2082,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "wingerx-restaurant-outreach@workspace:."
   dependencies:
+    nodemailer: "npm:9.0.1"
     oxlint: "npm:^0.16.0"
     twenty-sdk: "npm:2.31.0"
     typescript: "npm:5.9.3"

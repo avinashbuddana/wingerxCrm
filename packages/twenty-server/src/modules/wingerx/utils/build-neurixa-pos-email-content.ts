@@ -8,18 +8,30 @@ const OVERVIEW_PDF = 'WingerX_Restaurant_POS_Overview.pdf';
 const LOGO_ID = 'wingerx-logo@neurixasolutions.com';
 const DEMO_CARD_ID = 'wingerx-pos-demo-card@neurixasolutions.com';
 
+export const escapeWingerXEmailMessage = (message: string) =>
+  message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/\n/g, '<br />');
+
 export const buildNeurixaPosEmailContent = async (
   text: string,
   escapedMessage: string,
+  {
+    assets = join(
+      process.cwd(),
+      'dist',
+      'assets',
+      'modules',
+      'wingerx',
+      'assets',
+    ),
+    unsubscribeUrl,
+  }: { assets?: string; unsubscribeUrl?: string } = {},
 ) => {
-  const assets = join(
-    process.cwd(),
-    'dist',
-    'assets',
-    'modules',
-    'wingerx',
-    'assets',
-  );
   const [logo, demoCard, overview] = await Promise.all([
     readFile(join(assets, LOGO), 'base64'),
     readFile(join(assets, DEMO_CARD), 'base64'),
@@ -31,7 +43,7 @@ export const buildNeurixaPosEmailContent = async (
     .join('');
 
   return {
-    text: `${text}\n\nBook a 30-minute demo: ${DEMO_URL}`,
+    text: `${text}\n\nBook a 30-minute demo: ${DEMO_URL}${unsubscribeUrl ? `\n\nUnsubscribe: ${unsubscribeUrl}` : ''}`,
     html: `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#edf2f8" style="width:100%;background:#edf2f8;font-family:Arial,sans-serif">
         <tr><td align="center" style="padding:20px 10px">
@@ -68,6 +80,7 @@ export const buildNeurixaPosEmailContent = async (
                 </td></tr>
               </table>
             </td></tr>
+            ${unsubscribeUrl ? `<tr><td style="padding:0 24px 20px;font-size:13px;color:#10274e"><a href="${escapeWingerXEmailMessage(unsubscribeUrl)}" style="color:#10274e">Unsubscribe from POS outreach</a></td></tr>` : ''}
           </table>
           <!--[if mso]></td></tr></table><![endif]-->
         </td></tr>

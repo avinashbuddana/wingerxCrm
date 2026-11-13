@@ -33,12 +33,31 @@ yarn typecheck
 yarn test
 ```
 
-The planner selects due, eligible emails up to the remaining daily capacity. It counts initial emails and follow-ups against the same 100-email allowance, ignores replied or suppressed records, and emits at most one result per normalized email. It runs as pure application code for now. Nothing is scheduled or sent by installing this version.
+The planner selects due, eligible emails up to the remaining daily capacity. The scheduled runner uses it for POS introductions and reserves up to 100 slots per India business date. It skips prospects without recorded email permission, replies, suppressions and addresses already contacted by this runner.
+
+## Schedule POS introductions
+
+1. Deploy the CRM image from this revision and apply the Twenty app metadata. Confirm **Restaurant Outreach → Email Sends** appears. The runner needs a Twenty API key with read and update access to Restaurant prospects and create, read and update access to Restaurant email sends.
+2. On the VM, use a dedicated sender account with Node 24 and a checkout that includes this app, `packages/twenty-front/src/modules/wingerx/utils`, and `packages/twenty-server/src/modules/wingerx`. Run `yarn install --immutable` in this app.
+3. Store `TWENTY_WORKSPACE_URL`, `TWENTY_API_KEY`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_SMTP_USER`, `EMAIL_SMTP_PASSWORD`, and `WINGERX_EMAIL_FROM_ADDRESS` in the sender account's restricted environment. Use the same authenticated SMTP sender as the CRM. Keep these credentials outside the reply-draft worker account.
+4. Run `yarn email:batch` for a read-only dry run. A prospect qualifies when it has an email permission timestamp, is Ready for outreach, and its next action is due. Imported prospect rows do not acquire email permission on import. For a pilot, use a qualifying internal prospect and run `yarn email:batch --send --only=your-internal-address@example.com`.
+5. The service and timer in `deploy/gcp-vm` run at 10:00 IST. They expect the dedicated OS account `wingerx-sends`, the checkout at `/opt/wingerx/pos-outreach`, and a root-owned, mode-600 `/etc/wingerx/pos-email.env` containing the settings above. Include a `PATH` that locates Node 24 if the system Node is older. Once the pilot is verified, run the following from the checkout root.
+
+```sh
+sudo install -m 0644 deploy/gcp-vm/wingerx-pos-email.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now wingerx-pos-email.timer
+systemctl list-timers wingerx-pos-email.timer
+```
+
+The audit table shows the recipient, reservation, status and SMTP message ID. **Sent** means the SMTP provider accepted the message. Check the provider's delivery logs for mailbox delivery or bounce events. The runner sends one introduction per normalized address and includes an unsubscribe link to the sender mailbox. Record opt-out requests as **Suppress email** in Twenty. Review reserved or ambiguous sends in the provider logs before considering a manual retry.
+
+After SMTP acceptance, the Sales Pipeline card moves from **Ready for outreach** to **Contacted**, shows **POS email sent at**, and sets **Next action** three calendar days after the send if no later action is scheduled. The date is a reminder for the operator. Reply, booking and opt-out stages remain controlled by their own signals. If the pipeline update fails, the next run reconciles it using the saved send record.
 
 ## Production integration
 
 - Use WingerX's configured sender and connect its reply mailbox. Correlate inbound messages to the original thread and update the prospect before another follow-up can be claimed.
-- Persist send reservations and provider message IDs. Reserve the daily allowance in one transaction with the outbound job, using the workspace's India business date. Reconcile ambiguous sends before retrying.
+- Sync provider delivery events and mailbox replies into the CRM before enabling scheduled follow-ups.
 - Add authenticated WhatsApp webhook ingestion and use WingerX's existing template sending integration for opted-in prospects. Store the approved template and channel permissions in the workspace.
 - Check that an outbound test, a real reply, a bounce, an opt-out, a duplicate job and a retry each leave the correct state. Then enable scheduled outreach and report accepted sends, replies, delivery failures and demos booked.
 

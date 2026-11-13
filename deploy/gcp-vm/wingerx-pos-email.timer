@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily WingerX restaurant POS email batch
+
+[Timer]
+OnCalendar=*-*-* 10:00:00 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

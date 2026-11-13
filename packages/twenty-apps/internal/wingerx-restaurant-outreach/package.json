@@ -15,7 +15,11 @@
     "lint": "oxlint src scripts tests",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mts tests/*.test.mjs",
+    "email:batch": "node scripts/run-pos-email-batch.mjs",
     "twenty": "twenty"
+  },
+  "dependencies": {
+    "nodemailer": "9.0.1"
   },
   "devDependencies": {
     "oxlint": "^0.16.0",
