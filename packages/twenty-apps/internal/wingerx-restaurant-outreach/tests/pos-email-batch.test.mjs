@@ -63,6 +63,18 @@ const mockTwenty = (prospects, latest = (record) => record, beforePipelineUpdate
   return { client, sends };
 };
 
+test('caps a one-off batch at ten across preview and live mode', async () => {
+  const { client, sends } = mockTwenty(Array.from({ length: 12 }, (_, index) => ready(index + 1)));
+  const options = { client, now, limit: 10 };
+  assert.equal((await runPosEmailBatch(options)).eligible, 10);
+  assert.equal(sends.length, 0);
+  const send = async () => '<accepted@example.com>';
+  assert.equal((await runPosEmailBatch({ ...options, send, dryRun: false })).sent, 10);
+  assert.equal(sends.length, 10);
+  assert.equal((await runPosEmailBatch(options)).eligible, 2);
+  await assert.rejects(runPosEmailBatch({ ...options, limit: 101 }), /Batch limit/);
+});
+
 test('reserves no more than 100 sends per IST day across pages and reruns', async () => {
   const { client, sends } = mockTwenty(Array.from({ length: 103 }, (_, index) => ready(index)));
   const send = async () => {
@@ -115,7 +127,17 @@ test('limits a pilot to the specified approved address', async () => {
     return '<accepted@example.com>';
   };
   await runPosEmailBatch({
-    client, send, now, dryRun: false, onlyEmail: 'restaurant2@example.com',
+    client: {
+      ...client,
+      listPage(object, query) {
+        assert.equal(query.limit, '200');
+        assert.equal(query.filter, object === 'restaurantProspects'
+          ? 'businessEmail[ilike]:"%restaurant2@example.com%"'
+          : 'or(dispatchDay[eq]:2026-11-13,recipientEmail[ilike]:"restaurant2@example.com")');
+        return client.listPage(object, query);
+      },
+    },
+    send, now, dryRun: false, onlyEmail: 'restaurant2@example.com',
   });
   assert.deepEqual(recipients, ['restaurant2@example.com']);
 });

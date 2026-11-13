@@ -18,13 +18,17 @@ const ASSETS = fileURLToPath(new URL(
   import.meta.url,
 ));
 
-const listAll = async (client, object) => {
+const listAll = async (client, object, query) => {
   const result = [];
   const seenCursors = new Set();
   let cursor;
 
   do {
-    const page = await client.listPage(object, cursor ? { starting_after: cursor } : {});
+    const page = await client.listPage(object, {
+      limit: '200',
+      ...query,
+      ...(cursor ? { starting_after: cursor } : {}),
+    });
     result.push(...page.records);
     cursor = page.next;
     if (cursor && seenCursors.has(cursor)) throw new Error('Twenty returned a repeated pagination cursor.');
@@ -82,18 +86,29 @@ const syncPipeline = async (client, sendRecord, prospect, checkedAt) => {
 };
 
 export const runPosEmailBatch = async ({
-  client, send, dryRun = true, onlyEmail, now = () => new Date(),
+  client, send, dryRun = true, onlyEmail, limit = DAILY_EMAIL_LIMIT, now = () => new Date(),
 }) => {
+  if (!Number.isInteger(limit) || limit < 1 || limit > DAILY_EMAIL_LIMIT) {
+    throw new Error(`Batch limit must be an integer from 1 to ${DAILY_EMAIL_LIMIT}.`);
+  }
   const started = now();
   const dispatchDay = IST_DATE.format(started);
+  // Fall back to the complete scan for addresses with REST filter syntax characters.
+  const canFilter = /^[a-z0-9.+_-]+@[a-z0-9.-]+$/i.test(onlyEmail ?? '');
+  const prospectQuery = canFilter
+    ? { filter: `businessEmail[ilike]:"%${onlyEmail}%"` }
+    : undefined;
+  const sendQuery = canFilter
+    ? { filter: `or(dispatchDay[eq]:${dispatchDay},recipientEmail[ilike]:"${onlyEmail}")` }
+    : undefined;
   const [prospects, sends] = await Promise.all([
-    listAll(client, PROSPECTS),
-    listAll(client, SENDS),
+    listAll(client, PROSPECTS, prospectQuery),
+    listAll(client, SENDS, sendQuery),
   ]);
   const today = sends.filter((record) => record.dispatchDay === dispatchDay);
   const keys = new Set(sends.map((record) => record.dispatchKey));
   const usedSlots = new Set(today.map((record) => record.dispatchSlot));
-  const { batch } = planEmailBatch({
+  const { batch: planned } = planEmailBatch({
     prospects: prospects.map((prospect) => {
       const email = prospect.businessEmail?.trim().toLowerCase() ?? '';
 
@@ -106,6 +121,7 @@ export const runPosEmailBatch = async ({
     reservedToday: today.length,
     now: started,
   });
+  const batch = planned.slice(0, limit);
   const result = { dispatchDay, eligible: batch.length, reservedToday: today.length, sent: 0, skipped: 0, needsReview: 0, pipelinePending: 0, dryRun };
   if (dryRun) return result;
 
@@ -233,9 +249,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const args = process.argv.slice(2);
     const onlyArgs = args.filter((arg) => arg.startsWith('--only='));
-    if (new Set(args).size !== args.length || onlyArgs.length > 1 ||
-      args.some((arg) => arg !== '--send' && !arg.startsWith('--only='))) {
-      throw new Error('Usage: yarn email:batch [--send] [--only=internal@example.com]');
+    const limitArgs = args.filter((arg) => arg.startsWith('--limit='));
+    if (new Set(args).size !== args.length || onlyArgs.length > 1 || limitArgs.length > 1 ||
+      args.some((arg) => arg !== '--send' && !arg.startsWith('--only=') && !arg.startsWith('--limit='))) {
+      throw new Error('Usage: yarn email:batch [--send] [--limit=10] [--only=internal@example.com]');
     }
     const only = onlyArgs[0];
     const onlyEmail = only?.slice('--only='.length).trim().toLowerCase();
@@ -244,7 +261,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
     const dryRun = !args.includes('--send');
     const send = dryRun ? undefined : await createSmtpSender();
-    const result = await runPosEmailBatch({ client: workspaceClient(), send, dryRun, onlyEmail });
+    const limit = limitArgs[0] === undefined ? DAILY_EMAIL_LIMIT : Number(limitArgs[0].slice('--limit='.length));
+    const result = await runPosEmailBatch({ client: workspaceClient(), send, dryRun, onlyEmail, limit });
     console.log(JSON.stringify(result));
     if (result.needsReview || result.pipelinePending) process.exitCode = 1;
   } catch (error) {

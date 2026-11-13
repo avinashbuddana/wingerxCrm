@@ -14,6 +14,35 @@ const REQUEST = {
   incomingReply: 'Yes, we would like a demo.', updatedAt: '2026-11-11T12:00:00.000Z',
 };
 
+test('honors Retry-After on a rate-limited Twenty read', async () => {
+  const waits = [];
+  let calls = 0;
+  const client = createTwentyClient({
+    baseUrl: 'https://crm.example.com',
+    apiKey: 'twenty-test-key',
+    wait: async (delay) => waits.push(delay),
+    fetchRequest: async () => ++calls === 1
+      ? new Response('', { status: 429, headers: { 'Retry-After': '5' } })
+      : Response.json({ data: { restaurantProspects: [] } }),
+  });
+  assert.deepEqual(await client.listPage('restaurantProspects'), { records: [], next: null });
+  assert.deepEqual(waits, [5_000]);
+});
+
+test('stops on a rate-limited Twenty write without retrying', async () => {
+  let calls = 0;
+  const client = createTwentyClient({
+    baseUrl: 'https://crm.example.com',
+    apiKey: 'twenty-test-key',
+    fetchRequest: async () => {
+      calls += 1;
+      return new Response('', { status: 429, headers: { 'Retry-After': '5' } });
+    },
+  });
+  await assert.rejects(client.request('POST', 'restaurantEmailSends', {}), /Retry after 5 seconds/);
+  assert.equal(calls, 1);
+});
+
 test('writes a reviewable reply draft to Twenty and makes no send request', async () => {
   const calls = [];
   const client = createTwentyClient({
