@@ -63,6 +63,18 @@ const mockTwenty = (prospects, latest = (record) => record, beforePipelineUpdate
   return { client, sends };
 };
 
+test('caps a one-off batch at ten across preview and live mode', async () => {
+  const { client, sends } = mockTwenty(Array.from({ length: 12 }, (_, index) => ready(index + 1)));
+  const options = { client, now, limit: 10 };
+  assert.equal((await runPosEmailBatch(options)).eligible, 10);
+  assert.equal(sends.length, 0);
+  const send = async () => '<accepted@example.com>';
+  assert.equal((await runPosEmailBatch({ ...options, send, dryRun: false })).sent, 10);
+  assert.equal(sends.length, 10);
+  assert.equal((await runPosEmailBatch(options)).eligible, 2);
+  await assert.rejects(runPosEmailBatch({ ...options, limit: 101 }), /Batch limit/);
+});
+
 test('reserves no more than 100 sends per IST day across pages and reruns', async () => {
   const { client, sends } = mockTwenty(Array.from({ length: 103 }, (_, index) => ready(index)));
   const send = async () => {
