@@ -5,7 +5,7 @@ RUN apk add --no-cache git python3 ca-certificates
 ARG WHATOMATE_REF=88b0e856e8d2e111833a76bdaf4c3e0351768211
 RUN mkdir -p /src && cd /src && git init -q && git remote add origin https://github.com/shridarpatil/whatomate.git \
     && git fetch --depth 1 origin "$WHATOMATE_REF" && git checkout -q --detach FETCH_HEAD
-COPY wingerx.css wingerx-mark.svg /tmp/wingerx-assets/
+COPY wingerx.css client.css wingerx-mark.svg /tmp/wingerx-assets/
 COPY apply_branding.py /tmp/apply_branding.py
 RUN python3 /tmp/apply_branding.py /src
 RUN cd /src/frontend && npm ci --no-audit --no-fund && npm run build
@@ -15,6 +15,8 @@ RUN apk add --no-cache git ca-certificates
 ARG WHATOMATE_REF=88b0e856e8d2e111833a76bdaf4c3e0351768211
 RUN mkdir -p /src && cd /src && git init -q && git remote add origin https://github.com/shridarpatil/whatomate.git \
     && git fetch --depth 1 origin "$WHATOMATE_REF" && git checkout -q --detach FETCH_HEAD
+RUN grep -q 'Name:      "Default Organization"' /src/internal/database/postgres.go \
+    && sed -i 's/Name:      "Default Organization"/Name:      "Shree Gajanand Jewellers"/' /src/internal/database/postgres.go
 RUN rm -rf /src/internal/frontend/dist && mkdir -p /src/internal/frontend/dist
 COPY --from=frontend /src/frontend/dist/ /src/internal/frontend/dist/
 RUN cd /src && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/whatomate ./cmd/whatomate
