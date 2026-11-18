@@ -1,0 +1,74 @@
+/* Client delivery skin — white-first WingerX WhatsApp CRM
+   Source upstream remains AGPL-3.0. No changes to messaging functionality. */
+:root {
+  color-scheme: light;
+  --background:#f8faff;
+  --foreground:#13223c;
+  --card:#fff;
+  --card-foreground:#13223c;
+  --border:#e5eaf3;
+  --muted:#f3f6fc;
+  --muted-foreground:#64738c;
+  --faint:#f8faff;
+  --accent:#edf3ff;
+  --primary:#285fe7;
+  --primary-foreground:#fff;
+  --ring:#285fe7;
+}
+html { background:#f8faff; }
+body { background:#f8faff; color:#17243d; }
+[data-sidebar] { background:#fff!important; }
+[data-sidebar] nav a { transition:background .17s ease,color .17s ease; }
+[data-sidebar] nav a[aria-current="page"] {
+ background:#ecf2ff!important; color:#245ad8!important;
+ box-shadow:inset 3px 0 0 #326cf4;
+}
+[data-sidebar] nav a:hover { background:#f2f6ff!important; color:#245ad8!important; }
+[data-sidebar] nav a svg { stroke-width:1.85; }
+.wingerx-sidebar-brand {
+  display:grid!important;
+  grid-template-columns:38px 1fr;
+  row-gap:0;
+  border-bottom:1px solid #edf1f8;
+  align-items:center;
+}
+.wingerx-brand-copy { min-width:0; }
+.wingerx-brand-copy small { color:#667993; font-weight:650; }
+.wingerx-client-chip {
+  display:block; margin-top:.72rem;
+  color:#887049; font-size:.6rem; line-height:1.4;
+  font-weight:750; letter-spacing:.07em;
+  white-space:normal;
+}
+[data-sidebar] > header { background:white!important; }
+[data-page-header] { background:white!important; }
+[data-page-header] h1 { letter-spacing:-.025em; }
+[data-page-description] { color:#6b7890!important; }
+[data-page-body] { max-width:1600px; margin:0 auto; }
+.card, .card[data-widget] { background:white!important; }
+.card[data-widget]:hover { border-color:#cad8f2!important; }
+[data-chat-canvas] {
+  background-color:#f7f9fe!important;
+  background-image:radial-gradient(circle at 1px 1px,rgba(167,187,224,.23) 1px,transparent 0)!important;
+  background-size:20px 20px!important;
+}
+.card[data-bubble="outgoing"] { background:#e7f0ff!important; color:#193151!important; border:1px solid #cfdcf6!important; }
+.card[data-bubble="incoming"] { background:#fff!important; color:#243047!important; border:1px solid #e7ecf5!important; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline:2px solid #a2bffa; outline-offset:2px; }
+button:not([disabled]) { transition:filter .18s ease,background .18s ease; }
+button:not([disabled]):hover { filter:brightness(.98); }
+.auth-panel { width:min(100%,31rem); }
+.auth-panel > .card { border:1px solid #e6ebf5!important; box-shadow:0 30px 80px rgba(27,54,100,.11)!important; }
+.auth-panel h2 { letter-spacing:-.05em; }
+.auth-panel header { gap:.65rem!important; }
+.auth-panel .wingerx-auth-badge { letter-spacing:.09em; }
+.auth-panel .wingerx-site-link { font-size:.75rem; color:#285fe7; font-weight:650; text-decoration:none; }
+.auth-panel .wingerx-site-link:hover { text-decoration:underline; }
+@media(max-width:48rem) {
+  .wingerx-client-chip { font-size:.58rem; }
+  [data-page-body] { padding:1rem!important; }
+  .auth-panel > .card { padding:1.6rem!important; }
+}
+@media(prefers-reduced-motion:reduce) {
+  button, a, input { transition:none!important; }
+}
