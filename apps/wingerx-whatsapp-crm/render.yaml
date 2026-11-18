@@ -1,33 +1,33 @@
-# Isolated WingerX WhatsApp CRM preview; does not touch your existing CRM.
+# Isolated, empty client tenant for Shree Gajanand Jewellers; no existing WhatsApp or CRM data.
 services:
   - type: web
-    name: wingerx-whatsapp-crm
+    name: wingerx-gajanand-whatsapp
     runtime: docker
     plan: free
     region: singapore
-    branch: feat/wingerx-whatsapp-crm
+    branch: client/shree-gajanand-whatsapp-crm
     dockerContext: ./apps/wingerx-whatsapp-crm
     dockerfilePath: ./apps/wingerx-whatsapp-crm/Dockerfile
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: PORT
         value: "8080"
       - key: DATABASE_URL
         fromDatabase:
-          name: wingerx-wa-preview-db
+          name: wingerx-gajanand-wa-db
           property: connectionString
       - key: WHATOMATE_DATABASE__USER
         fromDatabase:
-          name: wingerx-wa-preview-db
+          name: wingerx-gajanand-wa-db
           property: user
       - key: WHATOMATE_DATABASE__PASSWORD
         fromDatabase:
-          name: wingerx-wa-preview-db
+          name: wingerx-gajanand-wa-db
           property: password
       - key: REDIS_URL
         fromService:
           type: keyvalue
-          name: wingerx-wa-preview-redis
+          name: wingerx-gajanand-wa-redis
           property: connectionString
       - key: WHATOMATE_APP__ENVIRONMENT
         value: production
@@ -47,21 +47,23 @@ services:
         value: "true"
       - key: WHATOMATE_WHATSAPP__API_VERSION
         value: v24.0
+      - key: WHATOMATE_DEFAULT_ADMIN__FULL_NAME
+        value: SGJ Administrator
       - key: WHATOMATE_CALLING__RECORDING_ENABLED
         value: "false"
       - key: WHATOMATE_STORAGE__TYPE
         value: local
   - type: keyvalue
-    name: wingerx-wa-preview-redis
+    name: wingerx-gajanand-wa-redis
     plan: free
     region: singapore
     maxmemoryPolicy: noeviction
     ipAllowList: []
 
 databases:
-  - name: wingerx-wa-preview-db
-    databaseName: wingerx_wa_preview
-    user: wingerx_wa_preview_user
+  - name: wingerx-gajanand-wa-db
+    databaseName: wingerx_gajanand_wa
+    user: wingerx_gajanand_wa_user
     region: singapore
     plan: free
     postgresMajorVersion: "17"
