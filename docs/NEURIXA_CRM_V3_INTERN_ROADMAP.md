@@ -1,9 +1,9 @@
 # NEURIXA | TWENTY CRM — IMPLEMENTATION BLUEPRINT V3
 **Issued:** 25 November 2026 | **Owners:** Namit, Aman, Varun | **MVP gate:** 15 January 2027 | **Hardening gate:** 29 January 2027
 
-**GitHub tasks:** [Master tracker (46)](https://github.com/avinashbuddana/CRM-automation/issues/46) • [45-ticket index with deadlines and dependencies](./NEURIXA_CRM_V3_GITHUB_ISSUES.md). Issues are tracked in the CRM-automation repository because Issues are currently disabled on the Twenty CRM code repository.
+**GitHub tasks (main Twenty CRM repository):** [Master tracker #53](https://github.com/avinashbuddana/wingerxCrm/issues/53) • [45 issues with owners, dates and dependencies](./NEURIXA_CRM_V3_GITHUB_ISSUES.md). All development issues have been migrated into `wingerxCrm`; former copies in `CRM-automation` are archived/closed for reference.
 
-> Design/specification only. UI mockups use sample data and are not verified production screenshots. Assignments are proposed; no live Twenty tasks have been created by this document.
+> Design/specification only. UI mockups use sample data and are not verified production screenshots. All 45 GitHub issues are created in this source repository; GitHub assignees await verified intern usernames. No tasks were created in the deployed Twenty CRM application.
 
 ## 1. Mission
 
