@@ -9,7 +9,7 @@
 2. Create a feature branch and implement the changes in this **same** Twenty repository.
 3. Open a pull request linking the task issue; attach staging screenshots and tests.
 4. Senior lead reviews, QA verifies acceptance criteria, then issue moves to Done.
-5. Personal names indicate ownership; assign GitHub handles after verifying their usernames.
+5. GitHub assignees: **Namit = @namitneurix-cmd (15 tasks)**; **Aman = @amanbhardwaj2701 (15 tasks)**; **Varun = username pending (15 tasks unassigned)**.
 
 ## Ticket index — full team
 
