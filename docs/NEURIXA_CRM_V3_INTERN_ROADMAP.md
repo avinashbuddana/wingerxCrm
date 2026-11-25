@@ -3,7 +3,7 @@
 
 **GitHub tasks (main Twenty CRM repository):** [Master tracker #53](https://github.com/avinashbuddana/wingerxCrm/issues/53) • [45 issues with owners, dates and dependencies](./NEURIXA_CRM_V3_GITHUB_ISSUES.md). All development issues have been migrated into `wingerxCrm`; former copies in `CRM-automation` are archived/closed for reference.
 
-> Design/specification only. UI mockups use sample data and are not verified production screenshots. All 45 GitHub issues are created in this source repository; Namit's 15 issues are assigned to @namitneurix-cmd, Aman's 15 to @amanbhardwaj2701, and Varun's 15 await his GitHub username. No tasks were created in the deployed Twenty CRM application.
+> Design/specification only. UI mockups use sample data and are not verified production screenshots. All 45 GitHub issues are created in this source repository; Namit's 15 issues are assigned to @namitneurix-cmd, Aman's 15 to @amanbhardwaj2701, and Varun's 15 are assigned to @Varun88956. No tasks were created in the deployed Twenty CRM application.
 
 ## 1. Mission
 
