@@ -1,73 +1,78 @@
-# Neurixa / WingerX Twenty CRM V3 — GitHub task index
+# Neurixa / WingerX Twenty CRM V3 — Canonical GitHub task index
 
-**Issues & team board:** [45 issues and master tracker](https://github.com/avinashbuddana/CRM-automation/issues/46)
-**Implementation repository:** [avinashbuddana/wingerxCrm](https://github.com/avinashbuddana/wingerxCrm)
-**Full implementation blueprint:** [Neurixa CRM V3 Roadmap](./NEURIXA_CRM_V3_INTERN_ROADMAP.md)
+**Canonical GitHub Issues:** [Master tracker #53](https://github.com/avinashbuddana/wingerxCrm/issues/53)
+**Browse all tasks:** [WingerX CRM issues](https://github.com/avinashbuddana/wingerxCrm/issues)
+**Functional blueprint:** [Neurixa CRM V3 Implementation Roadmap](./NEURIXA_CRM_V3_INTERN_ROADMAP.md)
 
-## How to work on a ticket
+## Working agreement
 
-1. Open the issue assigned to your name in the index below. GitHub assignments are pending verified account names.
-2. Check prerequisite tasks (linked below) and read the expected output/acceptance criteria.
-3. Create a feature branch in the **WingerX Twenty CRM code repository**, not this tracker repository.
-4. Create a PR and reference the full tracking issue, for example `avinashbuddana/CRM-automation#1`.
-5. Add staging screenshots/tests and obtain senior review before merging or deploying.
-6. Comment progress and blockers on the tracking issue; close it only when acceptance criteria are met.
+1. All 45 implementation issues now live in **this repository**, alongside the Twenty code.
+2. Each intern opens an issue with their name, reads the instructions and acceptance criteria, checks dependencies, and works in a feature branch.
+3. Open a PR **in this repository**, link the relevant issue ID (`Closes #8` for N01, for example) and attach tests/staging screenshots.
+4. Senior reviewer checks code, migrations, AI safety, external messaging and release readiness before closing a task.
+5. Intern names are recorded in issue titles and descriptions; GitHub `Assignee` fields need confirmed handles and repository access.
 
-## Ownership and deadlines
+## 45 tasks grouped by original sequence
 
-| ID | Intern | Sprint | Due date | Priority | Task / GitHub issue | Prerequisites |
+| Ticket | Owner | Sprint | Due | Priority | Task issue | Prerequisites |
 |---|---|---|---|---|---|---|
-| N01 | Namit | W0 | 2026-11-27 | P0 | [#1 Audit existing email sender, workers, and persistence](https://github.com/avinashbuddana/CRM-automation/issues/1) | — |
-| A01 | Aman | W0 | 2026-11-27 | P0 | [#2 Map current CRM screens and design navigation](https://github.com/avinashbuddana/CRM-automation/issues/2) | — |
-| V01 | Varun | W0 | 2026-11-27 | P0 | [#3 Verify self-hosted Ollama GLM model safely](https://github.com/avinashbuddana/CRM-automation/issues/3) | — |
-| N02 | Namit | W1 | 2026-12-04 | P0 | [#4 Normalize restaurant import and deduplication](https://github.com/avinashbuddana/CRM-automation/issues/4) | [N01](https://github.com/avinashbuddana/CRM-automation/issues/1) |
-| N03 | Namit | W1 | 2026-12-04 | P0 | [#5 Write status dictionary and transition contract](https://github.com/avinashbuddana/CRM-automation/issues/5) | [N01](https://github.com/avinashbuddana/CRM-automation/issues/1) |
-| A02 | Aman | W1 | 2026-12-04 | P0 | [#6 Build searchable Restaurant Prospect list](https://github.com/avinashbuddana/CRM-automation/issues/6) | [A01](https://github.com/avinashbuddana/CRM-automation/issues/2), [N02](https://github.com/avinashbuddana/CRM-automation/issues/4) |
-| A03 | Aman | W1 | 2026-12-04 | P1 | [#7 Build restaurant 360° detail drawer](https://github.com/avinashbuddana/CRM-automation/issues/7) | [A02](https://github.com/avinashbuddana/CRM-automation/issues/6) |
-| V02 | Varun | W1 | 2026-12-04 | P0 | [#8 Create private Ollama AI gateway in backend](https://github.com/avinashbuddana/CRM-automation/issues/8) | [V01](https://github.com/avinashbuddana/CRM-automation/issues/3) |
-| V03 | Varun | W1 | 2026-12-04 | P0 | [#9 Add GLM output validation and safety policy](https://github.com/avinashbuddana/CRM-automation/issues/9) | [V02](https://github.com/avinashbuddana/CRM-automation/issues/8) |
-| N04 | Namit | W2 | 2026-12-11 | P0 | [#10 Persist outbound message history](https://github.com/avinashbuddana/CRM-automation/issues/10) | [N03](https://github.com/avinashbuddana/CRM-automation/issues/5) |
-| N05 | Namit | W2 | 2026-12-11 | P0 | [#11 Make scheduled email batch safe and observable](https://github.com/avinashbuddana/CRM-automation/issues/11) | [N02](https://github.com/avinashbuddana/CRM-automation/issues/4), [N04](https://github.com/avinashbuddana/CRM-automation/issues/10) |
-| A04 | Aman | W2 | 2026-12-11 | P0 | [#12 Create campaign queue and per-recipient log screen](https://github.com/avinashbuddana/CRM-automation/issues/12) | [N04](https://github.com/avinashbuddana/CRM-automation/issues/10) |
-| A05 | Aman | W2 | 2026-12-11 | P0 | [#13 Create campaign composer with approval preview](https://github.com/avinashbuddana/CRM-automation/issues/13) | [A04](https://github.com/avinashbuddana/CRM-automation/issues/12), [V03](https://github.com/avinashbuddana/CRM-automation/issues/9) |
-| V04 | Varun | W2 | 2026-12-11 | P1 | [#14 AI prospect classification with reason](https://github.com/avinashbuddana/CRM-automation/issues/14) | [V03](https://github.com/avinashbuddana/CRM-automation/issues/9), [N02](https://github.com/avinashbuddana/CRM-automation/issues/4) |
-| V05 | Varun | W2 | 2026-12-11 | P1 | [#15 AI-generated email draft with review gate](https://github.com/avinashbuddana/CRM-automation/issues/15) | [V03](https://github.com/avinashbuddana/CRM-automation/issues/9), [A05](https://github.com/avinashbuddana/CRM-automation/issues/13) |
-| N06 | Namit | W3 | 2026-12-18 | P0 | [#16 Record provider delivery and failure events](https://github.com/avinashbuddana/CRM-automation/issues/16) | [N04](https://github.com/avinashbuddana/CRM-automation/issues/10) |
-| N07 | Namit | W3 | 2026-12-18 | P0 | [#17 Sync inbound email and match replies to contacts](https://github.com/avinashbuddana/CRM-automation/issues/17) | [N04](https://github.com/avinashbuddana/CRM-automation/issues/10), [N06](https://github.com/avinashbuddana/CRM-automation/issues/16) |
-| A06 | Aman | W3 | 2026-12-18 | P0 | [#18 Build shared inbox and reply triage screen](https://github.com/avinashbuddana/CRM-automation/issues/18) | [N07](https://github.com/avinashbuddana/CRM-automation/issues/17) |
-| A07 | Aman | W3 | 2026-12-18 | P1 | [#19 Add salesperson daily work and follow-up drawer](https://github.com/avinashbuddana/CRM-automation/issues/19) | [A06](https://github.com/avinashbuddana/CRM-automation/issues/18) |
-| V06 | Varun | W3 | 2026-12-18 | P1 | [#20 Score leads with explainable AI and business rules](https://github.com/avinashbuddana/CRM-automation/issues/20) | [V04](https://github.com/avinashbuddana/CRM-automation/issues/14), [A02](https://github.com/avinashbuddana/CRM-automation/issues/6) |
-| V07 | Varun | W3 | 2026-12-18 | P1 | [#21 Classify replies and draft follow-up recommendations](https://github.com/avinashbuddana/CRM-automation/issues/21) | [N07](https://github.com/avinashbuddana/CRM-automation/issues/17), [V03](https://github.com/avinashbuddana/CRM-automation/issues/9) |
-| N08 | Namit | W4 | 2026-12-25 | P0 | [#22 Implement send eligibility, consent and opt-out checks](https://github.com/avinashbuddana/CRM-automation/issues/22) | [N05](https://github.com/avinashbuddana/CRM-automation/issues/11), [N07](https://github.com/avinashbuddana/CRM-automation/issues/17) |
-| A08 | Aman | W4 | 2026-12-25 | P0 | [#23 Finish drag-and-drop sales opportunity Kanban](https://github.com/avinashbuddana/CRM-automation/issues/23) | [A03](https://github.com/avinashbuddana/CRM-automation/issues/7) |
-| V08 | Varun | W4 | 2026-12-25 | P0 | [#24 Define developer Project, Sprint and Issue schema](https://github.com/avinashbuddana/CRM-automation/issues/24) | [V01](https://github.com/avinashbuddana/CRM-automation/issues/3) |
-| N09 | Namit | W5 | 2027-01-01 | P0 | [#25 Automate lead owner assignment and follow-up due dates](https://github.com/avinashbuddana/CRM-automation/issues/25) | [N07](https://github.com/avinashbuddana/CRM-automation/issues/17), [A07](https://github.com/avinashbuddana/CRM-automation/issues/19) |
-| A09 | Aman | W5 | 2027-01-01 | P1 | [#26 Build deal 360° with timeline, meetings and proposal](https://github.com/avinashbuddana/CRM-automation/issues/26) | [A08](https://github.com/avinashbuddana/CRM-automation/issues/23), [N09](https://github.com/avinashbuddana/CRM-automation/issues/25) |
-| V09 | Varun | W5 | 2027-01-01 | P0 | [#27 Implement engineering issue CRUD and permissions](https://github.com/avinashbuddana/CRM-automation/issues/27) | [V08](https://github.com/avinashbuddana/CRM-automation/issues/24) |
-| N10 | Namit | W6 | 2027-01-08 | P0 | [#28 Automate Won → onboarding project and deliverables](https://github.com/avinashbuddana/CRM-automation/issues/28) | [N09](https://github.com/avinashbuddana/CRM-automation/issues/25), [V09](https://github.com/avinashbuddana/CRM-automation/issues/27) |
-| A10 | Aman | W6 | 2027-01-08 | P0 | [#29 Build developer Kanban and client project UI](https://github.com/avinashbuddana/CRM-automation/issues/29) | [V09](https://github.com/avinashbuddana/CRM-automation/issues/27), [A08](https://github.com/avinashbuddana/CRM-automation/issues/23) |
-| V10 | Varun | W6 | 2027-01-08 | P1 | [#30 Add GitHub PR references and read-only status sync](https://github.com/avinashbuddana/CRM-automation/issues/30) | [V09](https://github.com/avinashbuddana/CRM-automation/issues/27) |
-| N11 | Namit | W7 | 2027-01-15 | P0 | [#31 Run outreach and handoff end-to-end backend tests](https://github.com/avinashbuddana/CRM-automation/issues/31) | [N10](https://github.com/avinashbuddana/CRM-automation/issues/28), [N08](https://github.com/avinashbuddana/CRM-automation/issues/22) |
-| A11 | Aman | W7 | 2027-01-15 | P0 | [#32 Deliver integrated executive dashboard and pilot demo](https://github.com/avinashbuddana/CRM-automation/issues/32) | [A10](https://github.com/avinashbuddana/CRM-automation/issues/29), [N11](https://github.com/avinashbuddana/CRM-automation/issues/31) |
-| V11 | Varun | W7 | 2027-01-15 | P0 | [#33 Integrate first approved GLM features with pilot UAT](https://github.com/avinashbuddana/CRM-automation/issues/33) | [V07](https://github.com/avinashbuddana/CRM-automation/issues/21), [A06](https://github.com/avinashbuddana/CRM-automation/issues/18) |
-| N12 | Namit | W8 | 2027-01-22 | P1 | [#34 Verify WhatsApp template and webhook lifecycle](https://github.com/avinashbuddana/CRM-automation/issues/34) | [N08](https://github.com/avinashbuddana/CRM-automation/issues/22), [N04](https://github.com/avinashbuddana/CRM-automation/issues/10) |
-| N13 | Namit | W8 | 2027-01-22 | P1 | [#35 Publish durable operations health and alerts](https://github.com/avinashbuddana/CRM-automation/issues/35) | [N11](https://github.com/avinashbuddana/CRM-automation/issues/31), [V02](https://github.com/avinashbuddana/CRM-automation/issues/8) |
-| A12 | Aman | W8 | 2027-01-22 | P1 | [#36 Build campaign and revenue reports](https://github.com/avinashbuddana/CRM-automation/issues/36) | [A11](https://github.com/avinashbuddana/CRM-automation/issues/32), [N06](https://github.com/avinashbuddana/CRM-automation/issues/16) |
-| A13 | Aman | W8 | 2027-01-22 | P1 | [#37 Polish AI approvals and suggestions UX](https://github.com/avinashbuddana/CRM-automation/issues/37) | [V11](https://github.com/avinashbuddana/CRM-automation/issues/33), [V12](https://github.com/avinashbuddana/CRM-automation/issues/38) |
-| V12 | Varun | W8 | 2027-01-22 | P1 | [#38 Build AI next-best-action recommendations](https://github.com/avinashbuddana/CRM-automation/issues/38) | [V11](https://github.com/avinashbuddana/CRM-automation/issues/33), [A07](https://github.com/avinashbuddana/CRM-automation/issues/19) |
-| V13 | Varun | W8 | 2027-01-22 | P1 | [#39 Automate cross-module QA regression cases](https://github.com/avinashbuddana/CRM-automation/issues/39) | [V11](https://github.com/avinashbuddana/CRM-automation/issues/33), [N11](https://github.com/avinashbuddana/CRM-automation/issues/31) |
-| N14 | Namit | W9 | 2027-01-29 | P0 | [#40 Harden concurrency, queues and recovery](https://github.com/avinashbuddana/CRM-automation/issues/40) | [N13](https://github.com/avinashbuddana/CRM-automation/issues/35) |
-| N15 | Namit | W9 | 2027-01-29 | P1 | [#41 Prepare backend deployment and recovery runbook](https://github.com/avinashbuddana/CRM-automation/issues/41) | [N14](https://github.com/avinashbuddana/CRM-automation/issues/40) |
-| A14 | Aman | W9 | 2027-01-29 | P0 | [#42 Complete role-based UI and salesperson UAT](https://github.com/avinashbuddana/CRM-automation/issues/42) | [A13](https://github.com/avinashbuddana/CRM-automation/issues/37), [A12](https://github.com/avinashbuddana/CRM-automation/issues/36) |
-| A15 | Aman | W9 | 2027-01-29 | P1 | [#43 Responsive polish and final screenshot package](https://github.com/avinashbuddana/CRM-automation/issues/43) | [A14](https://github.com/avinashbuddana/CRM-automation/issues/42) |
-| V14 | Varun | W9 | 2027-01-29 | P0 | [#44 Test prompt injection, data leakage and AI outages](https://github.com/avinashbuddana/CRM-automation/issues/44) | [V13](https://github.com/avinashbuddana/CRM-automation/issues/39) |
-| V15 | Varun | W9 | 2027-01-29 | P1 | [#45 Prepare final test evidence and AI operating guide](https://github.com/avinashbuddana/CRM-automation/issues/45) | [V14](https://github.com/avinashbuddana/CRM-automation/issues/44) |
+| N01 | Namit | W0 | 2026-11-27 | P0 | [#8 Audit existing email sender, workers, and persistence](https://github.com/avinashbuddana/wingerxCrm/issues/8) | — |
+| A01 | Aman | — | — | — | [#9 Map current CRM screens and design navigation](https://github.com/avinashbuddana/wingerxCrm/issues/9) | — |
+| V01 | Varun | — | — | — | [#10 Verify self-hosted Ollama GLM model safely](https://github.com/avinashbuddana/wingerxCrm/issues/10) | — |
+| N02 | Namit | — | — | — | [#11 Normalize restaurant import and deduplication](https://github.com/avinashbuddana/wingerxCrm/issues/11) | — |
+| N03 | Namit | — | — | — | [#12 Write status dictionary and transition contract](https://github.com/avinashbuddana/wingerxCrm/issues/12) | — |
+| A02 | Aman | — | — | — | [#13 Build searchable Restaurant Prospect list](https://github.com/avinashbuddana/wingerxCrm/issues/13) | — |
+| A03 | Aman | — | — | — | [#14 Build restaurant 360° detail drawer](https://github.com/avinashbuddana/wingerxCrm/issues/14) | — |
+| V02 | Varun | — | — | — | [#15 Create private Ollama AI gateway in backend](https://github.com/avinashbuddana/wingerxCrm/issues/15) | — |
+| V03 | Varun | — | — | — | [#16 Add GLM output validation and safety policy](https://github.com/avinashbuddana/wingerxCrm/issues/16) | — |
+| N04 | Namit | — | — | — | [#17 Persist outbound message history](https://github.com/avinashbuddana/wingerxCrm/issues/17) | — |
+| N05 | Namit | — | — | — | [#18 Make scheduled email batch safe and observable](https://github.com/avinashbuddana/wingerxCrm/issues/18) | — |
+| A04 | Aman | — | — | — | [#19 Create campaign queue and per-recipient log screen](https://github.com/avinashbuddana/wingerxCrm/issues/19) | — |
+| A05 | Aman | — | — | — | [#20 Create campaign composer with approval preview](https://github.com/avinashbuddana/wingerxCrm/issues/20) | — |
+| V04 | Varun | — | — | — | [#21 AI prospect classification with reason](https://github.com/avinashbuddana/wingerxCrm/issues/21) | — |
+| V05 | Varun | — | — | — | [#22 AI-generated email draft with review gate](https://github.com/avinashbuddana/wingerxCrm/issues/22) | — |
+| N06 | Namit | — | — | — | [#23 Record provider delivery and failure events](https://github.com/avinashbuddana/wingerxCrm/issues/23) | — |
+| N07 | Namit | — | — | — | [#24 Sync inbound email and match replies to contacts](https://github.com/avinashbuddana/wingerxCrm/issues/24) | — |
+| A06 | Aman | — | — | — | [#25 Build shared inbox and reply triage screen](https://github.com/avinashbuddana/wingerxCrm/issues/25) | — |
+| A07 | Aman | — | — | — | [#26 Add salesperson daily work and follow-up drawer](https://github.com/avinashbuddana/wingerxCrm/issues/26) | — |
+| V06 | Varun | — | — | — | [#27 Score leads with explainable AI and business rules](https://github.com/avinashbuddana/wingerxCrm/issues/27) | — |
+| V07 | Varun | — | — | — | [#28 Classify replies and draft follow-up recommendations](https://github.com/avinashbuddana/wingerxCrm/issues/28) | — |
+| N08 | Namit | — | — | — | [#29 Implement send eligibility, consent and opt-out checks](https://github.com/avinashbuddana/wingerxCrm/issues/29) | — |
+| A08 | Aman | — | — | — | [#30 Finish drag-and-drop sales opportunity Kanban](https://github.com/avinashbuddana/wingerxCrm/issues/30) | — |
+| V08 | Varun | — | — | — | [#31 Define developer Project, Sprint and Issue schema](https://github.com/avinashbuddana/wingerxCrm/issues/31) | — |
+| N09 | Namit | — | — | — | [#32 Automate lead owner assignment and follow-up due dates](https://github.com/avinashbuddana/wingerxCrm/issues/32) | — |
+| A09 | Aman | — | — | — | [#33 Build deal 360° with timeline, meetings and proposal](https://github.com/avinashbuddana/wingerxCrm/issues/33) | — |
+| V09 | Varun | — | — | — | [#34 Implement engineering issue CRUD and permissions](https://github.com/avinashbuddana/wingerxCrm/issues/34) | — |
+| N10 | Namit | — | — | — | [#35 Automate Won → onboarding project and deliverables](https://github.com/avinashbuddana/wingerxCrm/issues/35) | — |
+| A10 | Aman | — | — | — | [#36 Build developer Kanban and client project UI](https://github.com/avinashbuddana/wingerxCrm/issues/36) | — |
+| V10 | Varun | — | — | — | [#37 Add GitHub PR references and read-only status sync](https://github.com/avinashbuddana/wingerxCrm/issues/37) | — |
+| N11 | Namit | — | — | — | [#38 Run outreach and handoff end-to-end backend tests](https://github.com/avinashbuddana/wingerxCrm/issues/38) | — |
+| A11 | Aman | — | — | — | [#39 Deliver integrated executive dashboard and pilot demo](https://github.com/avinashbuddana/wingerxCrm/issues/39) | — |
+| V11 | Varun | — | — | — | [#40 Integrate first approved GLM features with pilot UAT](https://github.com/avinashbuddana/wingerxCrm/issues/40) | — |
+| N12 | Namit | — | — | — | [#41 Verify WhatsApp template and webhook lifecycle](https://github.com/avinashbuddana/wingerxCrm/issues/41) | — |
+| N13 | Namit | — | — | — | [#42 Publish durable operations health and alerts](https://github.com/avinashbuddana/wingerxCrm/issues/42) | — |
+| A12 | Aman | — | — | — | [#43 Build campaign and revenue reports](https://github.com/avinashbuddana/wingerxCrm/issues/43) | — |
+| A13 | Aman | — | — | — | [#44 Polish AI approvals and suggestions UX](https://github.com/avinashbuddana/wingerxCrm/issues/44) | — |
+| V12 | Varun | — | — | — | [#45 Build AI next-best-action recommendations](https://github.com/avinashbuddana/wingerxCrm/issues/45) | — |
+| V13 | Varun | — | — | — | [#46 Automate cross-module QA regression cases](https://github.com/avinashbuddana/wingerxCrm/issues/46) | — |
+| N14 | Namit | — | — | — | [#47 Harden concurrency, queues and recovery](https://github.com/avinashbuddana/wingerxCrm/issues/47) | — |
+| N15 | Namit | — | — | — | [#48 Prepare backend deployment and recovery runbook](https://github.com/avinashbuddana/wingerxCrm/issues/48) | — |
+| A14 | Aman | — | — | — | [#49 Complete role-based UI and salesperson UAT](https://github.com/avinashbuddana/wingerxCrm/issues/49) | — |
+| A15 | Aman | — | — | — | [#50 Responsive polish and final screenshot package](https://github.com/avinashbuddana/wingerxCrm/issues/50) | — |
+| V14 | Varun | — | — | — | [#51 Test prompt injection, data leakage and AI outages](https://github.com/avinashbuddana/wingerxCrm/issues/51) | — |
+| V15 | Varun | — | — | — | [#52 Prepare final test evidence and AI operating guide](https://github.com/avinashbuddana/wingerxCrm/issues/52) | — |
 
-## Review and security gates
+## Sprints
 
-- No bulk emails or WhatsApp template sends without approval and policy checks.
-- The GLM/Ollama model must be reached via a private backend gateway; keep credentials out of GitHub.
-- Do not change production credentials or deploy production directly as an intern.
-- QA evidence is mandatory for closing a task.
+- **W0:** 25–27 Nov 2026 – initial audits and model check
+- **W1:** 30 Nov–4 Dec – restaurants, status definitions and Ollama gateway
+- **W2:** 7–11 Dec – queue reliability, campaign builder and AI drafting
+- **W3:** 14–18 Dec – inbound replies, inbox and AI lead intelligence
+- **W4:** 21–25 Dec – consent, sales Kanban and engineering schema
+- **W5:** 28 Dec–1 Jan – follow-up automation, deal 360°, issue CRUD
+- **W6:** 4–8 Jan – onboarding and developer Kanban
+- **W7:** 11–15 Jan – MVP integration/demo
+- **W8:** 18–22 Jan – reporting, WhatsApp, AI actions and test suite
+- **W9:** 25–29 Jan – hardening, security and handover
 
-**Important:** GitHub Issues were disabled for `avinashbuddana/wingerxCrm` on 25 November 2026. The tasks therefore use `avinashbuddana/CRM-automation` solely for issue tracking; implementation code remains in this repository.
+**Prior tracker:** Historical copies are retained at [CRM-automation issues](https://github.com/avinashbuddana/CRM-automation/issues) with migration links. Do not continue implementation discussion there.
