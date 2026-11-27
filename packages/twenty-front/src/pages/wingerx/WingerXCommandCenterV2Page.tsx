@@ -1,11 +1,13 @@
 import { styled } from '@linaria/react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { themeCssVariables } from 'twenty-ui/theme-constants';
 
 import { agentChatPrepromptState } from '@/ai/states/agentChatPrepromptState';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
+import { WingerXAiHealthCard } from '@/wingerx/components/WingerXAiHealthCard';
+import { WINGER_X_AI_HEALTH_FIXTURE } from '@/wingerx/utils/wingerxAiHealthFixture';
 import {
   type WingerXAutomationCandidate,
   type WingerXAutomationRule,
@@ -42,7 +44,7 @@ const RECORD_LIMIT = 500;
 const STALE_DEAL_DAYS = 14;
 const STALE_TECH_DAYS = 7;
 
-type Tab = 'sales' | 'tech' | 'automation' | 'outreach';
+type Tab = 'sales' | 'tech' | 'automation' | 'outreach' | 'ai-operations';
 
 type DataResult = ReturnType<typeof useWingerXObjectRecords>;
 
@@ -1996,7 +1998,12 @@ const AutomationView = ({
 };
 
 export const WingerXCommandCenterV2Page = () => {
-  const [tab, setTab] = useState<Tab>('sales');
+  const [searchParams] = useSearchParams();
+  const isAiHealthFixture =
+    import.meta.env.DEV && searchParams.get('aiHealthFixture') === '1';
+  const [tab, setTab] = useState<Tab>(
+    isAiHealthFixture ? 'ai-operations' : 'sales',
+  );
   const data = useWingerXData();
   const navigate = useNavigate();
   const setAgentChatPreprompt = useSetAtomState(agentChatPrepromptState);
@@ -2079,12 +2086,35 @@ export const WingerXCommandCenterV2Page = () => {
         >
           Automation
         </StyledTab>
+        <StyledTab
+          data-active={tab === 'ai-operations'}
+          type="button"
+          onClick={() => setTab('ai-operations')}
+        >
+          AI Operations
+        </StyledTab>
       </StyledTabs>
 
       {tab === 'sales' ? <SalesView data={data} /> : null}
       {tab === 'tech' ? <TechView data={data} /> : null}
       {tab === 'outreach' ? <OutreachView data={data} /> : null}
       {tab === 'automation' ? <AutomationView data={data} /> : null}
+      {tab === 'ai-operations' && (
+        <StyledPanel>
+          <StyledPanelTitle>AI Health</StyledPanelTitle>
+          <WingerXAiHealthCard
+            isFixture={isAiHealthFixture}
+            snapshot={
+              isAiHealthFixture ? WINGER_X_AI_HEALTH_FIXTURE : {
+                model: null,
+                reachable: null,
+                medianLatencyMs: null,
+                checkedAt: null,
+              }
+            }
+          />
+        </StyledPanel>
+      )}
     </StyledPage>
   );
 };
